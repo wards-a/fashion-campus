@@ -1,0 +1,19 @@
+version: "1.0.0"
+services:
+  flask-app:
+    build: .
+    image: "fashion-campus"
+    container_name: "fashion-campus"
+    ports:
+      - "5000:5000"
+    env_file:
+    - ".env"
+    depends_on:
+    - "pgdb"
+  pgdb:
+    image: "postgres:14"
+    container_name: "fashion-campus-db"
+    ports:
+    - "5432:5432"
+    env_file:
+    - ".env"
