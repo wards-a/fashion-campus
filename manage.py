@@ -9,6 +9,7 @@ from app.main.model import (
     category,
     product,
     product_image,
+    product_size,
     cart,
     cart_detail,
     shipping_address,
