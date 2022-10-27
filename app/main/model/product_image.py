@@ -4,7 +4,7 @@ class ProducImage(db.Model):
     __tablename__ = "product_image"
 
     product_id = db.Column(db.String, db.ForeignKey("product.id"))
-    image_url = db.Column(db.String, nullable=False)
+    image = db.Column(db.String, nullable=False)
 
     __mapper_args__ = {
         "primary_key": [image_url]
