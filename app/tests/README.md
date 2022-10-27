@@ -1,10 +1,18 @@
 # About this module
 
+A test code's location.
+
+Use [unittest](https://docs.python.org/3/library/unittest.html) or [pytest](https://docs.pytest.org/en/7.1.x/contents.html) library.
+
 ## Getting Started
 
-This module makes use of the [pytest](https://docs.pytest.org/en/7.1.x/contents.html) library.
+### Pytest
 
-## How to run
+Use the test_*.py or *_test.py pattern to create your own testing code. See the [documentation](https://docs.pytest.org/en/7.2.x/explanation/goodpractices.html#test-discovery) for more information.
+
+## Testing
+
+### With Pytest
 
 Start the fashion-campus container with docker compose, make sure you are in the fashion-campus directory.
 
