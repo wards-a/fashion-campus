@@ -10,6 +10,8 @@ class User(db.Model):
     phone_number = db.Column(db.String, nullable=False)
     password = db.Column(db.String, nullable=False)
     balance = db.Column(db.Float, nullable=False)
+    role = db.relationship("Role", backref="user")
+    address = db.relationship("Address", backref="user")
 
     def __repr__(self) -> str:
         return f"<id: {self.id}, name: {self.name}, email: {self.email}> \
