@@ -1,6 +1,6 @@
 from app.main import db
 
-class ShippingAddress(db.Model):
+class Address(db.Model):
     __tablename__ = "shipping_address"
 
     id = db.Column(db.String, primary_key=True)
