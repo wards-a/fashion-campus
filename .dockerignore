@@ -1,0 +1,6 @@
+fashion-campus/
+*.pyc
+__pycache__/
+
+.gitignore
+*.md
