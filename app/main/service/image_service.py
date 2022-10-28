@@ -4,13 +4,13 @@ from flask import abort
 from google.cloud import storage
 
 def check_extension(image):
-    ALLOWED_EXTENSIONS = {'jpg', 'jpeg', 'png', 'webp'}
+    ALLOWED_EXTENSIONS = {'jpg', 'png', 'webp'}
     extension = image.split('.')[1]
 
     if extension not in ALLOWED_EXTENSIONS:
         abort()
 
-    return extension
+    return "jpeg" if extension=="jpg" else extension
 
 def serve_image(image):
     # get bucket name from env
