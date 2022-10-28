@@ -8,7 +8,7 @@ Use [unittest](https://docs.python.org/3/library/unittest.html) or [pytest](http
 
 ### Pytest
 
-Use the test_*.py or *_test.py pattern to create your own testing code. See the [documentation](https://docs.pytest.org/en/7.2.x/explanation/goodpractices.html#test-discovery) for more information.
+Use the `test_*.py` or `*_test.py` pattern to create your own testing code. See the [documentation](https://docs.pytest.org/en/7.2.x/explanation/goodpractices.html#test-discovery) for more information.
 
 Other useful [documentation](https://flask.palletsprojects.com/en/2.2.x/testing/) about flask testing.
 
