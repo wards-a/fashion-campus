@@ -2,7 +2,7 @@ from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 
 from .utils import postgres_cloud
-from .controller.universal.image import image_bp
+from .controller.image_controller import image_bp
 
 db = SQLAlchemy()
 
