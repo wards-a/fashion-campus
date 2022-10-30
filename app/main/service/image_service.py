@@ -8,7 +8,7 @@ def check_extension(image):
     extension = image.split('.')[1]
 
     if extension not in ALLOWED_EXTENSIONS:
-        abort()
+        abort(400)
 
     return "jpeg" if extension=="jpg" else extension
 
