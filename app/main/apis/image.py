@@ -20,14 +20,13 @@ import io
 
 from flask import Blueprint, send_file
 
-from app.main.service.image_service import check_extension, serve_image
+from app.main.services.image_service import check_extension, serve_image
 
-image_bp = Blueprint("image", __name__, url_prefix="/image/")
 
-@image_bp.route("<image_extension>")
-def image(image_extension):
+image_bp = Blueprint('image', __name__, url_prefix='/image')
+
+@image_bp.route('/<image_extension>')
+def get(image_extension):
     extension = check_extension(image_extension)
     content =  serve_image(image_extension)
     return send_file(io.BytesIO(content), mimetype=f"image/{extension}")
-
-
