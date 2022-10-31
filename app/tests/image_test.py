@@ -8,21 +8,10 @@ def client():
     return app.test_client()
 
 def test_successful_getImage(client):
-    image = "jeans.jpg"
+    image = "Goodiebag-blacucream- g.jpg"
+    content_type = ['image/jpeg', 'image/png', 'image/webp']
 
     response = client.get(f"/image/{image}")
 
-    assert image == response.json["image"]
+    assert response.headers[0][1] in content_type
     assert 200 == response.status_code
-
-def test_failed_getImage(client):
-    """
-    This test will fail due to an incorrect image extension.
-    """
-    images = ["shoe.gif", "t-shirt"]
-    error_msg = "error, user already exists"
-    for image in images:
-        response = client.get(f"/image/{image}")
-
-        assert error_msg == response.json["message"]
-        assert 403 == response.status_code

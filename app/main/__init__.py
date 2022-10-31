@@ -1,22 +1,40 @@
-from flask import Flask, got_request_exception
-from flask_sqlalchemy import SQLAlchemy
-from werkzeug.exceptions import HTTPException
+import os
 
-from app.main.utils import postgres_cloud
-from app.main.service.errors import custom_error_handler
-from app.main.controller.image_controller import image_bp
+from flask import Flask
+from flask_sqlalchemy import SQLAlchemy
+from flask_migrate import Migrate
+
+from app.main.apis.image import image_bp
 
 db = SQLAlchemy()
+migrate = Migrate()
 
 def create_app():
     app = Flask(__name__)
-    got_request_exception.connect(custom_error_handler, app)
-    app.config['SECRET_KEY'] = 'Ytta7H8jK17Aj'
-    app.config["SQLALCHEMY_DATABASE_URI"] = postgres_cloud
+    app.config['SECRET_KEY'] = 'Y7H8jK17Aj'
+    app.config["SQLALCHEMY_DATABASE_URI"] = "postgresql+psycopg2://{}:{}@{}:{}/{}".format(
+        os.environ["POSTGRES_USER"],
+        os.environ["POSTGRES_PASSWORD"],
+        os.environ["POSTGRES_HOST"],
+        os.environ["POSTGRES_PORT"],
+        os.environ["POSTGRES_DB"],
+    )
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
     db.init_app(app)
 
-    # blueprints api
+    from app.main.model import (
+        user,
+        shipping_address,
+        product,
+        product_image,
+        category,
+        cart,
+        cart_detail,
+        order,
+        order_detail
+    )
+    migrate.init_app(app, db)
+
     blueprints = [image_bp]
     for blueprint in blueprints:
         app.register_blueprint(blueprint)

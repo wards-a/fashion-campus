@@ -5,7 +5,10 @@ from google.cloud import storage
 
 def check_extension(image):
     ALLOWED_EXTENSIONS = {'jpg', 'png', 'webp'}
-    extension = image.split('.')[1]
+    try:
+        extension = image.split('.')[1]
+    except IndexError:
+        abort(400, description="Invalid Extension")
 
     if extension not in ALLOWED_EXTENSIONS:
         abort(400)
