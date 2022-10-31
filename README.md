@@ -31,6 +31,6 @@ git clone https://gitlab.com/andrifanky/fashion-campus.git
 With docker
 
 ```
-cd <working_folder_path>
+cd <base_folder_this_repo>
 docker compose up
 ```
