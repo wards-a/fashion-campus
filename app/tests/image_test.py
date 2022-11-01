@@ -9,7 +9,7 @@ def client():
 
 def test_successful_getImage(client):
     image = "Goodiebag-blacucream- g.jpg"
-    content_type = ['image/jpeg', 'image/png', 'image/webp']
+    content_type = ['image/jpeg', 'image/png', 'image/svg', 'image/webp']
 
     response = client.get(f"/image/{image}")
 

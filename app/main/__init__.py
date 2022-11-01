@@ -27,7 +27,6 @@ def create_app():
         shipping_address,
         product,
         product_image,
-        product_category,
         category,
         cart,
         cart_detail,

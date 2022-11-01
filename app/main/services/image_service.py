@@ -4,7 +4,7 @@ from flask import abort
 from google.cloud import storage
 
 def check_extension(image):
-    ALLOWED_EXTENSIONS = {'jpg', 'png', 'webp'}
+    ALLOWED_EXTENSIONS = {'jpg', 'png', 'svg', 'webp'}
     try:
         extension = image.split('.')[1]
     except IndexError:
