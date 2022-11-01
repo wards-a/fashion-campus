@@ -1,4 +1,3 @@
-from email.policy import default
 import enum
 from uuid import uuid4
 
@@ -22,11 +21,12 @@ class Product(db.Model):
         primary_key=True,
         default=uuid4
     )
+    category_id = db.Column(UUID(as_uuid=True), db.ForeignKey('category.id'))
     name = db.Column(db.String, nullable=False)
     description = db.Column(db.Text, nullable=False)
     # static size
     size = db.Column(db.String, nullable=False, server_default=str('[S, M, L, XL]'))
-    price = db.Column(db.Float, nullable=False)
+    price = db.Column(db.Numeric(12, 2), nullable=False)
     condition = db.Column(
         db.Enum(ProductCondition, values_callable=lambda obj: [e.value for e in obj]),
         nullable=False
@@ -39,7 +39,8 @@ class Product(db.Model):
     created_at = db.Column(db.DateTime(timezone=True), nullable=False, server_default=db.func.now())
     updated_at = db.Column(db.DateTime(timezone=True), nullable=False, onupdate=db.func.now())
     image = db.relationship("ProductImage", backref="product")
-    product_category = db.relationship("ProductCategory", back_populates="product")
+    category = db.relationship('Category', back_populates='product')
+    # product_category = db.relationship("ProductCategory", back_populates="product")
 
     def __repr__(self) -> str:
         return f"<id: {self.id}, name: {self.name}, condition: {self.condition},> \
