@@ -1,6 +1,7 @@
 fashion-campus/
 *.pyc
 __pycache__/
-
 .gitignore
 *.md
+.vscode
+.pytest_cache

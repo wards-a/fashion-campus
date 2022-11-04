@@ -28,4 +28,12 @@ class CartDetail(db.Model):
     product = db.relationship("Product", backref="detail")
 
     def __repr__(self) -> str:
-        return f"<card id: {self.card_id}, product id: {self.product_id}>"
+        return "<CartDetail(id={}, size={}, quantity={}, created_at={}, updated_at={} " \
+            "product.name={})>".format(
+            self.id,
+            self.size,
+            self.quantity,
+            self.created_at,
+            self.updated_at,
+            self.product.name
+        )

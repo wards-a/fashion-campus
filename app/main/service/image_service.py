@@ -8,10 +8,13 @@ def check_extension(image):
     try:
         extension = image.split('.')[1]
     except IndexError:
-        abort(400, description="Invalid Extension")
+        abort(400, description="Invalid filename")
 
     if extension not in ALLOWED_EXTENSIONS:
-        abort(400)
+        abort(
+            400,
+            description="Extensions are not permitted. However, jpg, png, svg, and webp are permitted."
+        )
 
     return "jpeg" if extension=="jpg" else extension
 

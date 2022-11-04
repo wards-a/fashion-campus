@@ -18,7 +18,14 @@ class ShippingAddress(db.Model):
     city = db.Column(db.String, nullable=False)
     address = db.Column(db.Text, nullable=False)
     created_at = db.Column(db.DateTime(timezone=True), nullable=False, server_default=db.func.now())
-    updated_at = db.Column(db.DateTime(timezone=True), nullable=False, onupdate=db.func.now())
+    updated_at = db.Column(db.DateTime(timezone=True), onupdate=db.func.now())
 
     def __repr__(self) -> str:
-        return f"id: {self.id}, user id: {self.user_id}, name: {self.name}"
+        return "<ShippingAddress(id={}, name={}, phone_number={}, " \
+            "city={}, address={})>".format(
+                self.id,
+                self.name,
+                self.phone_number,
+                self.city,
+                self.address
+        )

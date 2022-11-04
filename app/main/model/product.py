@@ -22,10 +22,10 @@ class Product(db.Model):
         default=uuid4
     )
     category_id = db.Column(UUID(as_uuid=True), db.ForeignKey('category.id'))
-    name = db.Column(db.String, nullable=False)
+    name = db.Column(db.String, nullable=False, unique=True)
     description = db.Column(db.Text, nullable=False)
     # static size
-    size = db.Column(db.String, nullable=False, server_default=str('[S, M, L, XL]'))
+    size = db.Column(db.ARRAY(db.String), nullable=False, server_default="{S, M, L, XL}")
     price = db.Column(db.Numeric(12, 2), nullable=False)
     condition = db.Column(
         db.Enum(ProductCondition, values_callable=lambda obj: [e.value for e in obj]),
@@ -37,11 +37,21 @@ class Product(db.Model):
         server_default=str(IsDelete.NO.value)
     )
     created_at = db.Column(db.DateTime(timezone=True), nullable=False, server_default=db.func.now())
-    updated_at = db.Column(db.DateTime(timezone=True), nullable=False, onupdate=db.func.now())
-    image = db.relationship("ProductImage", backref="product")
+    updated_at = db.Column(db.DateTime(timezone=True), onupdate=db.func.now())
+    images = db.relationship("ProductImage", back_populates="product")
     category = db.relationship('Category', back_populates='product')
     # product_category = db.relationship("ProductCategory", back_populates="product")
 
-    def __repr__(self) -> str:
-        return f"<id: {self.id}, name: {self.name}, condition: {self.condition},> \
-            price: {self.price}"
+    def __repr__(self):
+        return "<Product(id={}, name={}, description={}, size={}, price={}, condition={}, " \
+            "is deleted={}, created_at={}, updated_at={})>".format(
+            self.id,
+            self.name,
+            self.description,
+            self.size,
+            self.price,
+            self.condition,
+            self.is_deleted,
+            self.created_at,
+            self.updated_at
+        )

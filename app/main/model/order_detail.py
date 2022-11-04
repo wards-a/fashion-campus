@@ -18,8 +18,14 @@ class OrderDetail(db.Model):
     size = db.Column(db.String, nullable=False)
     quantity = db.Column(db.Integer, nullable=False)
     price = db.Column(db.Float, nullable=False)
-    product = db.relationship("Product", backref="detail")
+    product = db.relationship("Product", backref="order_detail")
 
 
     def __repr__(self) -> str:
-        return f"<order id: {self.order_id}, product id: {self.product_id}>"
+        return "<OrderDetail(id={}, size={}, quantity={}, price={}, product.name={})>".format(
+            self.id,
+            self.size,
+            self.quantity,
+            self.price,
+            self.product.name
+        )
