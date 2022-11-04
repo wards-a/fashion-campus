@@ -22,4 +22,9 @@ class Cart(db.Model):
     details = db.relationship("CartDetail", backref="cart")
 
     def __repr__(self) -> str:
-        return f"<id: {self.id}>, buyer id: {self.user_id}"
+        return "<Cart(id={}, users.username={}, created_at={}, details={})>".format(
+            self.id,
+            self.user.name,
+            self.created_at,
+            self.details
+        )

@@ -1,8 +1,8 @@
 """empty message
 
-Revision ID: f78867b7087f
+Revision ID: 5ec3f48138f7
 Revises: 
-Create Date: 2022-11-01 07:30:24.738216
+Create Date: 2022-11-02 21:35:40.417180
 
 """
 from alembic import op
@@ -10,7 +10,7 @@ import sqlalchemy as sa
 from sqlalchemy.dialects import postgresql
 
 # revision identifiers, used by Alembic.
-revision = 'f78867b7087f'
+revision = '5ec3f48138f7'
 down_revision = None
 branch_labels = None
 depends_on = None
@@ -23,7 +23,7 @@ def upgrade():
     sa.Column('name', sa.String(), nullable=False),
     sa.Column('image', sa.String(), nullable=False),
     sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=False),
-    sa.Column('updated_at', sa.DateTime(timezone=True), nullable=False),
+    sa.Column('updated_at', sa.DateTime(timezone=True), nullable=True),
     sa.PrimaryKeyConstraint('id')
     )
     op.create_table('users',
@@ -36,7 +36,7 @@ def upgrade():
     sa.Column('balance', sa.Float(), nullable=False),
     sa.Column('is_admin', sa.Enum('0', '1', name='admin'), server_default='0', nullable=False),
     sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=False),
-    sa.Column('updated_at', sa.DateTime(timezone=True), nullable=False),
+    sa.Column('updated_at', sa.DateTime(timezone=True), nullable=True),
     sa.PrimaryKeyConstraint('id')
     )
     op.create_table('cart',
@@ -51,14 +51,15 @@ def upgrade():
     sa.Column('category_id', postgresql.UUID(as_uuid=True), nullable=True),
     sa.Column('name', sa.String(), nullable=False),
     sa.Column('description', sa.Text(), nullable=False),
-    sa.Column('size', sa.String(), server_default='[S, M, L, XL]', nullable=False),
+    sa.Column('size', sa.ARRAY(sa.String()), server_default='{S, M, L, XL}', nullable=False),
     sa.Column('price', sa.Numeric(precision=12, scale=2), nullable=False),
     sa.Column('condition', sa.Enum('new', 'used', name='productcondition'), nullable=False),
     sa.Column('is_deleted', sa.Enum('0', '1', name='isdelete'), server_default='0', nullable=False),
     sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=False),
-    sa.Column('updated_at', sa.DateTime(timezone=True), nullable=False),
+    sa.Column('updated_at', sa.DateTime(timezone=True), nullable=True),
     sa.ForeignKeyConstraint(['category_id'], ['category.id'], ),
-    sa.PrimaryKeyConstraint('id')
+    sa.PrimaryKeyConstraint('id'),
+    sa.UniqueConstraint('name')
     )
     op.create_table('shipping_address',
     sa.Column('id', postgresql.UUID(as_uuid=True), nullable=False),
@@ -68,7 +69,7 @@ def upgrade():
     sa.Column('city', sa.String(), nullable=False),
     sa.Column('address', sa.Text(), nullable=False),
     sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=False),
-    sa.Column('updated_at', sa.DateTime(timezone=True), nullable=False),
+    sa.Column('updated_at', sa.DateTime(timezone=True), nullable=True),
     sa.ForeignKeyConstraint(['user_id'], ['users.id'], ),
     sa.PrimaryKeyConstraint('id')
     )
@@ -99,7 +100,7 @@ def upgrade():
     sa.Column('product_id', postgresql.UUID(as_uuid=True), nullable=True),
     sa.Column('image', sa.String(), nullable=False),
     sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=False),
-    sa.Column('updated_at', sa.DateTime(timezone=True), nullable=False),
+    sa.Column('updated_at', sa.DateTime(timezone=True), nullable=True),
     sa.ForeignKeyConstraint(['product_id'], ['product.id'], ),
     sa.PrimaryKeyConstraint('id')
     )

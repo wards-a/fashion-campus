@@ -15,7 +15,12 @@ class ProductImage(db.Model):
     product_id = db.Column(UUID(as_uuid=True), db.ForeignKey('product.id'))
     image = db.Column(db.String, nullable=False)
     created_at = db.Column(db.DateTime(timezone=True), nullable=False, server_default=db.func.now())
-    updated_at = db.Column(db.DateTime(timezone=True), nullable=False, onupdate=db.func.now())
+    updated_at = db.Column(db.DateTime(timezone=True), onupdate=db.func.now())
+    product = db.relationship("Product", back_populates="images")
 
     def __repr__(self) -> str:
-        return f"<id: {self.id}, image url: {self.image}>"
+        return "<ProductImage(id={}, image={}, created_at={})>".format(
+            self.id,
+            self.image,
+            self.created_at
+        )

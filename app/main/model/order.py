@@ -30,8 +30,16 @@ class Order(db.Model):
         server_default=db.func.now()
     )
     user = db.relationship("User", back_populates="order")
-    shipping_address = db.relationship("ShippingAddress", back_populates="shipping_address")
+    shipping_address = db.relationship("ShippingAddress", backref="order")
     details = db.relationship("OrderDetail", backref="order")
 
     def __repr__(self) -> str:
-        return f"<id: {self.id}>, buyer id: {self.user_id}"
+        return "<Order(id={}, user.username={}, shipping_address={}, shipping_method{}, " \
+            "created_at={}, details={})>".format(
+                self.id,
+                self.user.name,
+                self.shipping_address.name,
+                self.shipping_method,
+                self.created_at,
+                self.details
+        )

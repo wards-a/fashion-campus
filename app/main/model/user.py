@@ -38,10 +38,19 @@ class User(db.Model):
         server_default=str(Admin.NO.value)
     )
     created_at = db.Column(db.DateTime(timezone=True), nullable=False, server_default=db.func.now())
-    updated_at = db.Column(db.DateTime(timezone=True), nullable=False, onupdate=db.func.now())
+    updated_at = db.Column(db.DateTime(timezone=True), onupdate=db.func.now())
     address = db.relationship("ShippingAddress", backref="user")
     order = db.relationship("Order", back_populates="user")
 
     def __repr__(self) -> str:
-        return f"<id: {self.id}, name: {self.name}, type: {self.role} \
-            email: {self.email}> phone number: {self.phone_number}"
+        return "<User(id={}, name={}, type={}, email={}, phone_number={}, " \
+            "balance={}, created_at={}, updated_at={})>".format(
+                self.id,
+                self.name,
+                self.type,
+                self.email,
+                self.phone_number,
+                self.balance,
+                self.created_at,
+                self.updated_at
+        )
