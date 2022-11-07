@@ -24,7 +24,7 @@ class ProductImagesList(fields.Raw):
     def format(self, images):
         images_url = list()
         for i in images:
-            images_url.append(url_for("api.image_image", image_extension=i.image))
+            images_url.append(url_for("api.image", image_extension=i.image))
         return images_url
 
 
@@ -45,5 +45,14 @@ class ProductsApiModel:
         "condition": fields.String(required=True),
         "category": UUID(required=True),
         "price": fields.Integer(required=True, min=1)
-    }, strict=False)
+    })
+    product_load_with_id = api.model("Product", {
+        "product_name": fields.String(required=True),
+        "description": fields.String(required=True),
+        "images": ImagesValidation(required=True),
+        "condition": fields.String(required=True),
+        "category": UUID(required=True),
+        "price": fields.Integer(required=True, min=1),
+        "product_id": UUID(required=True)
+    })
     # product_load =

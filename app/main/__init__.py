@@ -69,30 +69,30 @@ def create_app():
 
 app = create_app()
 
-@app.errorhandler(Exception)
-def handle_exception(e):
-    # HTTP errors
-    if isinstance(e, HTTPException):
-        return {"message": e.description}, e.code
+# @app.errorhandler(Exception)
+# def handle_exception(e):
+#     # HTTP errors
+#     if isinstance(e, HTTPException):
+#         return {"message": e.description}, e.code
 
-    # Non-HTTP, exceptions only
-    return {"message": str(e)}, 500
+#     # Non-HTTP, exceptions only
+#     return {"message": str(e)}, 500
 
-@app.after_request
-def after_request(response):
-    """
-    to "catch" flask_restx.errors.ValidationError
+# @app.after_request
+# def after_request(response):
+#     """
+#     to "catch" flask_restx.errors.ValidationError
 
-    masih belum di kustomisasi 
-    """
-    if int(response.status_code) == 404:
-      response.set_data(json.dumps({'success': False, 'data': [],
-                               'msg': 'Resource not found. Check Resouce URI again'}))
+#     masih belum di kustomisasi 
+#     """
+#     if int(response.status_code) == 404:
+#       response.set_data(json.dumps({'success': False, 'data': [],
+#                                'msg': 'Resource not found. Check Resouce URI again'}))
 
-    if int(response.status_code) >= 400:
-      response_data = json.loads(response.get_data())
-      if 'errors' in response_data:
-        response_data = {"message": "Please input the field"}
-        response.set_data(json.dumps(response_data))
-      response.headers.add('Content-Type', 'application/json')
-    return response
+#     if int(response.status_code) >= 400:
+#       response_data = json.loads(response.get_data())
+#       if 'errors' in response_data:
+#         response_data = {"message": "Please input the field"}
+#         response.set_data(json.dumps(response_data))
+#       response.headers.add('Content-Type', 'application/json')
+#     return response
