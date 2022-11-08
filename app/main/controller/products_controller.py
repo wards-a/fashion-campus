@@ -5,6 +5,7 @@ from flask_restx import Resource
 
 from app.main.api_model.products_am import ProductsApiModel
 from app.main.service.products_service import (
+    get_product_list,
     get_product_detail,
     save_new_product,
     save_product_changes,
@@ -13,14 +14,19 @@ from app.main.service.products_service import (
 
 
 products_ns = ProductsApiModel.api
+product_list_input = ProductsApiModel.product_list_input
+product_list_rows_m = ProductsApiModel.product_list_rows
 product_detail_m = ProductsApiModel.product_detail
 product_post_mv = ProductsApiModel.product_load
 product_put_mv = ProductsApiModel.product_load_with_id
 
 @products_ns.route("")
 class ProductsController(Resource):
+    @products_ns.marshal_with(product_list_rows_m)
+    @products_ns.expect(product_list_input)
     def get(self):
-        pass
+        params = request.args
+        return get_product_list(params)
 
     @products_ns.expect(product_post_mv, validate=True)
     def post(self):
@@ -40,14 +46,14 @@ class ProductController(Resource):
             uuid.UUID(product_id)
             return get_product_detail(product_id)
         except ValueError:
-            abort(400, description="Invalid product")
+            abort(400, "Invalid product")
 
     def delete(self, product_id):
         try:
             uuid.UUID(product_id)
             return mark_as_deleted(product_id)
         except ValueError:
-            abort(400, description="Invalid product")
+            abort(400, "Invalid product")
 
 @products_ns.route("/search_image")
 class SearchImageController(Resource):
