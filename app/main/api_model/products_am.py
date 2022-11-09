@@ -1,4 +1,4 @@
-import uuid
+import uuid, copy
 from flask import abort, url_for
 from flask_restx import Namespace, fields
 
@@ -46,16 +46,18 @@ class ProductsApiModel:
 
     ### Product list response ###
 
-    product_list = api.model("ProductList", {
+    product_list_format = api.model("ProductList", {
         "id": fields.String(example='ecc0c158-2ad5-4aea-a702-b00279940417'),
         "image": ProductImage(attribute="images"),
         "title": fields.String(attribute="name", example='Kaus apolo'),
         "price": fields.Integer(example='150000')
     })
 
-    product_list_rows = api.model("ProductListRows", {
-        "data": fields.List(fields.Nested(product_list)),
-        "total_rows": fields.Integer(example='1')
+    product_list_response = api.model("ProductListResponse", {
+        "data": fields.List(fields.Nested(product_list_format)),
+        "total_rows": fields.Integer(example='1'),
+        "success": fields.Boolean(default=True),
+        "message": fields.String(default="Items successfully retrieved"),
     })
 
     ### Product detail response ###
@@ -70,15 +72,73 @@ class ProductsApiModel:
     })
 
     ### Product post and put expected input ###
-    product_load = api.model("ProductLoad", {
-        "product_name": fields.String(required=True, example="Kaus Apolo"),
-        "description": fields.String(example= "Kaus apolo dengan bahan lembut dan halus dijamin nyaman di badan anda"),
-        "images": fields.String(required=True, example="[kaus-apolo-depan.jpg, kaus-apolo-samping.jpg, kaus-apolo-belakang.jpg]"),
-        "condition": fields.String(required=True, example="new"),
-        "category": UUID(required=True, example="c86ffcfe-5108-4f99-9c6a-52560d9c667b"),
-        "price": fields.Integer(required=True, example="150000")
-    })
+    product_post_schema = {
+        "type": "object",
+        "properties": {
+            "product_name": {
+                "type": "string",
+                "minLength": 1,
+                "errorMessage": {
+                    "required": "Product name is required",
+                    "minLength": "Product name cannot be null"
+                },
+                "example": "Kaus Apolo"
+            },
+            "description": {
+                "type": "string",
+                "example": "Kaus apolo dengan bahan lembut dan halus dijamin nyaman di badan anda"
+            },
+            "images": {
+                "type": "string",
+                "minLength": 1,
+                "errorMessage": {
+                    "required": "Image is required",
+                    "minLength": "Image is required"
+                },
+                "example": "[kaus-apolo-depan.jpg, kaus-apolo-samping.jpg, kaus-apolo-belakang.jpg]"
+            },
+            "condition": {
+                "type": "string",
+                "minLength": 1,
+                "errorMessage": {
+                    "required": "Condition is required",
+                    "minLength": "Condition cannot be null"
+                },
+                "example": "new"
+            },
+            "category": {
+                "type": "string",
+                "minLength": 1,
+                "errorMessage": {
+                    "required": "Category is required",
+                    "minLength": "Category is required"
+                },
+                "example": "c86ffcfe-5108-4f99-9c6a-52560d9c667b"
+            },
+            "price": {
+                "type": "number",
+                "minimum": 1,
+                "errorMessage": {
+                    "required": "Price is required",
+                    "minimum": "Price must be positive"
+                },
+                "example": 150000
+            }
+        },
+        "required": ["product_name", "images", "condition", "category", "price"]
+    }
 
-    product_load_with_id = api.clone("ProductLoadWithId", product_load, {
-        "product_id": UUID(required=True, example="ecc0c158-2ad5-4aea-a702-b00279940417")
-    })
+    product_post_model = api.schema_model("ProductPostModel", product_post_schema)
+    
+    product_put_schema = copy.deepcopy(product_post_schema)
+    product_put_schema['properties']['product_id'] = {
+        "type": "string",
+        "minLength": 1,
+        "errorMessage": {
+            "required": "Product id is required",
+            "minLength": "Product id is required"
+        },
+        "example": "02815e33-e4aa-4973-b4e0-22ed2e82966c"
+    }
+    product_put_schema['required'] = ["product_name", "images", "condition", "category", "price", "product_id"]
+    product_put_model = api.schema_model("ProductPutModel", product_put_schema)
