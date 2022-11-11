@@ -15,17 +15,16 @@ class UUID(fields.Raw):
 
 class ProductImage(fields.Raw):
     __schema_type__ = "string"
-    __schema_example__ = "/image/kaus-apolo.jpg"
 
-    def format(self, images):
-        return url_for("api.image", image_extension=images[0].image)
+    def format(self, value):
+        return url_for("api.image", image_extension=value[0].image)
 
 class ProductImagesList(fields.Raw):
     __schema_type__ = "string"
 
-    def format(self, images):
+    def format(self, value):
         images_url = list()
-        for i in images:
+        for i in value:
             images_url.append(url_for("api.image", image_extension=i.image))
         return images_url
 
@@ -48,7 +47,7 @@ class ProductsApiModel:
 
     product_list_format = api.model("ProductList", {
         "id": fields.String(example='ecc0c158-2ad5-4aea-a702-b00279940417'),
-        "image": ProductImage(attribute="images"),
+        "image": ProductImage(attribute="images", example="/image/kaus-apolo.jpg"),
         "title": fields.String(attribute="name", example='Kaus apolo'),
         "price": fields.Integer(example='150000')
     })

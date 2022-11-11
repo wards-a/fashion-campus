@@ -39,7 +39,7 @@ class Product(db.Model):
     created_at = db.Column(db.DateTime(timezone=True), nullable=False, server_default=db.func.now())
     updated_at = db.Column(db.DateTime(timezone=True), onupdate=db.func.now())
     images = db.relationship("ProductImage", back_populates="product")
-    category = db.relationship('Category', back_populates='product')
+    category = db.relationship('Category', backref='product')
     # product_category = db.relationship("ProductCategory", back_populates="product")
 
     def __repr__(self):
