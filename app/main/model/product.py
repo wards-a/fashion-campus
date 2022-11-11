@@ -21,9 +21,9 @@ class Product(db.Model):
         primary_key=True,
         default=uuid4
     )
-    category_id = db.Column(UUID(as_uuid=True), db.ForeignKey('category.id'))
-    name = db.Column(db.String, nullable=False, unique=True)
-    description = db.Column(db.Text, nullable=False)
+    category_id = db.Column(UUID(as_uuid=True), db.ForeignKey('category.id', ondelete="SET NULL"))
+    name = db.Column(db.String, nullable=False)
+    description = db.Column(db.Text)
     # static size
     size = db.Column(db.ARRAY(db.String), nullable=False, server_default="{S, M, L, XL}")
     price = db.Column(db.Numeric(12, 2), nullable=False)
@@ -39,7 +39,7 @@ class Product(db.Model):
     created_at = db.Column(db.DateTime(timezone=True), nullable=False, server_default=db.func.now())
     updated_at = db.Column(db.DateTime(timezone=True), onupdate=db.func.now())
     images = db.relationship("ProductImage", back_populates="product")
-    category = db.relationship('Category', back_populates='product')
+    category = db.relationship('Category', backref='product')
     # product_category = db.relationship("ProductCategory", back_populates="product")
 
     def __repr__(self):

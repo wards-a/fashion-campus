@@ -75,26 +75,36 @@ app = create_app()
 def handle_exception(e):
     # HTTP errors
     if isinstance(e, HTTPException):
-        return {"message": e.description}, e.code
+        return {'message': e.description}, 400
 
     # Non-HTTP, exceptions only
-    return {"message": str(e)}, 500
+    return {'message': str(e)}
 
 @app.after_request
 def after_request(response):
     """
     to "catch" flask_restx.errors.ValidationError
-
-    masih belum di kustomisasi 
     """
+    response_failed_format = {
+        'success': False, 
+        'data': [], 
+        'message': None
+    }
+
     if int(response.status_code) == 404:
-      response.set_data(json.dumps({'success': False, 'data': [],
-                               'msg': 'Resource not found. Check Resouce URI again'}))
+        response_data = json.loads(response.get_data())
+        if 'c_not_found' not in response_data:
+            response.set_data(json.dumps({'message': 'Resource not found'}))
+        else:
+            response.set_data(json.dumps({'message': response_data['c_not_found']}))
 
     if int(response.status_code) >= 400:
-      response_data = json.loads(response.get_data())
-      if 'errors' in response_data:
-        response_data = {"message": "Please input the field"}
-        response.set_data(json.dumps(response_data))
-      response.headers.add('Content-Type', 'application/json')
+        response_data = json.loads(response.get_data())
+        if 'message' in response_data:
+            response_failed_format.update({'message': response_data['message']})
+            response.set_data(json.dumps(response_failed_format))
+        # if 'errors' in response_data:
+        #     response_data = {"message": "Please input the field"}
+        #     response.set_data(json.dumps(response_data))
+
     return response
