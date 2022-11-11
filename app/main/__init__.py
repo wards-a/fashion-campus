@@ -5,15 +5,17 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 from werkzeug.exceptions import HTTPException
 from flask_restx import Api
+from flask_bcrypt import Bcrypt
 
 db = SQLAlchemy()
 migrate = Migrate()
+bcrypt = Bcrypt()
 blueprint = Blueprint("api", __name__)
 api = Api(blueprint, title="FASHION CAMPUS API")
 
 def create_app():
     app = Flask(__name__)
-    app.config['SECRET_KEY'] = 'Y7H8jK17Aj'
+    app.config['SECRET_KEY'] = os.environ["SECRET_KEY"]
     app.config["SQLALCHEMY_DATABASE_URI"] = "postgresql+psycopg2://{}:{}@{}:{}/{}".format(
         os.environ["POSTGRES_USER"],
         os.environ["POSTGRES_PASSWORD"],
