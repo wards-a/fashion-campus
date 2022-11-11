@@ -1,12 +1,16 @@
+from flask import request
+
 from flask_restx import Resource
 
 from app.main.api_model.user_am import UserApiModel
+from app.main.utils.token import token_required
 
 
 user_ns = UserApiModel.api
 
 @user_ns.route("")
 class UsersController(Resource):
+    @token_required
     def get(self):
         pass
 
