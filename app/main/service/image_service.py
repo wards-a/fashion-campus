@@ -1,6 +1,6 @@
 import os
 
-from flask import abort
+from flask_restx import abort
 from google.cloud import storage
 
 def check_extension(image):
@@ -8,12 +8,12 @@ def check_extension(image):
     try:
         extension = image.split('.')[1]
     except IndexError:
-        abort(400, description="Invalid filename")
+        abort(400, "Invalid filename")
 
     if extension not in ALLOWED_EXTENSIONS:
         abort(
-            400,
-            description="Extensions are not permitted. However, jpg, png, svg, and webp are permitted."
+            415,
+            "Media type are not permitted. However, jpg, png, svg, and webp are permitted."
         )
 
     return "jpeg" if extension=="jpg" else extension

@@ -18,17 +18,16 @@ To get or display picture in the platform
 """
 import io
 
-from flask import Blueprint, send_file
+from flask import send_file
 from flask_restx import Resource
 
 from app.main.api_model.image_am import ImageApiModel
 from app.main.service.image_service import check_extension, serve_image
 
 
-# image_bp = Blueprint('image', __name__, url_prefix='/image')
 image_ns = ImageApiModel.api
 
-@image_ns.route('/<image_extension>')
+@image_ns.route('/<image_extension>', endpoint="image")
 class ImageController(Resource):
     def get(self, image_extension):
         extension = check_extension(image_extension)
