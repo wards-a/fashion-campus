@@ -11,7 +11,7 @@ from app.main.service.products_service import (
     save_product_changes,
     mark_as_deleted
 )
-from app.main.core.validate_payload import validate_payload
+from app.main.utils.validate_payload import validate_payload
 
 
 products_ns = ProductsApiModel.api
