@@ -1,17 +1,10 @@
-import uuid, copy
+import copy
+
 from flask import abort, url_for
 from flask_restx import Namespace, fields
 
+from app.main.model.product import ProductCondition
 
-class UUID(fields.Raw):
-    __schema_type__ = "string"
-    
-    def format(self, id):
-        try:
-            uuid.UUID(id)
-            return str(id)
-        except ValueError:
-            abort(400, description="Invalid id")
 
 class ProductImage(fields.Raw):
     __schema_type__ = "string"
@@ -32,19 +25,17 @@ class ProductImagesList(fields.Raw):
 class ProductsApiModel:
     api = Namespace("products")
 
-    ### Product list expected input ###
-
-    product_list_input = api.parser()
-    product_list_input.add_argument('page', type=int, help='Page number', location='path')
-    product_list_input.add_argument('page_size', help='Products per page', type=int, location='path')
-    product_list_input.add_argument('sort_by', type=str, help='Sort by price asc or desc; Price a_z/Price z_a', location='path')
-    product_list_input.add_argument('category', type=str, help='Filter by category id ', location='path')
-    product_list_input.add_argument('price', type=str, help='Filter by price range; start,end', location='path')
-    product_list_input.add_argument('condition', type=str, help='Filter by product condition; new/used', location='path')
-    product_list_input.add_argument('product_name', type=str, help='Filter by product name', location='path')
+    ### Product list expected input (for swagger documentaion) ###
+    product_list_model = api.parser()
+    product_list_model.add_argument('page', type=int, help='Page number', location='path')
+    product_list_model.add_argument('page_size', help='Products per page', type=int, location='path')
+    product_list_model.add_argument('sort_by', type=str, help='Sort by price asc or desc; Price a_z/Price z_a', location='path')
+    product_list_model.add_argument('category', type=str, help='Filter by category id ', location='path')
+    product_list_model.add_argument('price', type=str, help='Filter by price range; start,end', location='path')
+    product_list_model.add_argument('condition', type=str, help='Filter by product condition; new/used', location='path')
+    product_list_model.add_argument('product_name', type=str, help='Filter by product name', location='path')
 
     ### Product list response ###
-
     product_list_format = api.model("ProductList", {
         "id": fields.String(example='ecc0c158-2ad5-4aea-a702-b00279940417'),
         "image": ProductImage(attribute="images", example="/image/kaus-apolo.jpg"),
@@ -60,14 +51,15 @@ class ProductsApiModel:
     })
 
     ### Product detail response ###
-
-    product_detail = api.model("ProductDetail", {
+    product_detail_response = api.model("ProductDetail", {
         "id": fields.String,
         "title": fields.String(attribute="name"),
         "size": fields.Raw,
         "product_detail": fields.Raw(attribute="description"),
         "price": fields.Integer,
-        "images_url": ProductImagesList(attribute="images")
+        "images_url": ProductImagesList(attribute="images"),
+        "category_id": fields.String,
+        "category_name": fields.String(attribute="category.name")
     })
 
     ### Product post and put expected input ###
@@ -87,21 +79,14 @@ class ProductsApiModel:
                 "type": "string",
                 "example": "Kaus apolo dengan bahan lembut dan halus dijamin nyaman di badan anda"
             },
-            "images": {
-                "type": "string",
-                "minLength": 1,
-                "errorMessage": {
-                    "required": "Image is required",
-                    "minLength": "Image is required"
-                },
-                "example": "[kaus-apolo-depan.jpg, kaus-apolo-samping.jpg, kaus-apolo-belakang.jpg]"
-            },
             "condition": {
                 "type": "string",
                 "minLength": 1,
+                "enum": [e.value for e in ProductCondition],
                 "errorMessage": {
                     "required": "Condition is required",
-                    "minLength": "Condition cannot be null"
+                    "minLength": "Condition cannot be null",
+                    "enum": "Condition is invalid, condition must be new or used"
                 },
                 "example": "new"
             },
@@ -115,7 +100,7 @@ class ProductsApiModel:
                 "example": "c86ffcfe-5108-4f99-9c6a-52560d9c667b"
             },
             "price": {
-                "type": "number",
+                "type": "string",
                 "minimum": 1,
                 "errorMessage": {
                     "required": "Price is required",
@@ -124,11 +109,11 @@ class ProductsApiModel:
                 "example": 150000
             }
         },
-        "required": ["product_name", "images", "condition", "category", "price"]
+        "required": ["product_name", "condition", "category", "price"]
     }
-
     product_post_model = api.schema_model("ProductPostModel", product_post_schema)
-    
+
+    ### put ###
     product_put_schema = copy.deepcopy(product_post_schema)
     product_put_schema['properties']['product_id'] = {
         "type": "string",
@@ -141,3 +126,21 @@ class ProductsApiModel:
     }
     product_put_schema['required'] = ["product_name", "images", "condition", "category", "price", "product_id"]
     product_put_model = api.schema_model("ProductPutModel", product_put_schema)
+
+    ###### Search by image ######
+    search_by_image_schema = {
+        "type": "object",
+        "properties": {
+            "image": {
+                "type": "string",
+                "minLength": 1,
+                "errorMessage": {
+                    "required": "Image is required",
+                    "minLength": "Image is required"
+                },
+                "example": "base64 string"
+            }
+        },
+        "required": ["image"]
+    }
+    search_by_image_model = api.schema_model("SearchByImage", search_by_image_schema)

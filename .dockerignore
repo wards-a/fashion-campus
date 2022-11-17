@@ -5,3 +5,5 @@ __pycache__/
 *.md
 .vscode
 .pytest_cache
+.dockerignore
+dockerfile
