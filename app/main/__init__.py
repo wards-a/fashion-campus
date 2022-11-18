@@ -5,6 +5,7 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 from flask_restx import Api
 from flask_bcrypt import Bcrypt
+from flask_cors import CORS
 from celery import Celery
 
 from app.main.utils.error_handler import register_error_handler
@@ -15,11 +16,14 @@ bcrypt = Bcrypt()
 blueprint = Blueprint("api", __name__)
 api = Api(blueprint, title="FASHION CAMPUS API")
 celery = Celery(__name__)
+cors = CORS()
 
 def create_app():
     app = Flask(__name__)
     app.config['SECRET_KEY'] = os.environ["SECRET_KEY"]
     app.config['MAX_CONTENT_LENGTH'] = 2 * 1024 * 1024
+    ### cors config ###
+    cors.init_app(app)
     ### celery config ###
     app.config.update(CELERY_CONFIG={
         'broker_url': os.environ['CELERY_BROKER_URL'],
