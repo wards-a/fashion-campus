@@ -18,10 +18,8 @@ services:
     - "flask_app"
   
   web:
-    image: adamawrd/startup-campus-fe:latest
+    image: adamawrd/startup-campus-fe-local:latest
     ports:
     - "3000:3000"
-    env_file:
-    - ".env"
     depends_on:
     - "flask_app"
