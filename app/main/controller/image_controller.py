@@ -22,7 +22,7 @@ from flask import send_file
 from flask_restx import Resource
 
 from app.main.api_model.image_am import ImageApiModel
-from app.main.service.image_service import check_extension, serve_image
+from app.main.service.image_service import allowed_file, serve_image
 
 
 image_ns = ImageApiModel.api
@@ -30,6 +30,7 @@ image_ns = ImageApiModel.api
 @image_ns.route('/<image_extension>', endpoint="image")
 class ImageController(Resource):
     def get(self, image_extension):
-        extension = check_extension(image_extension)
+        extension = allowed_file(image_extension)
+        extension = "jpeg" if extension=="jpg" else extension
         content =  serve_image(image_extension)
         return send_file(io.BytesIO(content), mimetype=f"image/{extension}")
