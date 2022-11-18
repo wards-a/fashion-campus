@@ -1,12 +1,10 @@
 import os
 import jwt
-from flask import abort, request
+from flask import abort, jsonify, request
 from functools import wraps
 from datetime import datetime, timedelta
 
-from app.main.service.auth_service import (
-    get_user_by_id
-)
+from app.main.service.auth_service import get_user_by_id
 
 def generate_token(payload: dict) -> str:
     # token should expire after 24 hrs
@@ -40,7 +38,5 @@ def token_required(f):
                 "error": str(e)
             }, 500
         
-        # return f(current_user, *args, **kwargs)
-        return f(current_user)
+        return f(current_user, *args, **kwargs)
     return decorated
-        

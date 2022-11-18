@@ -72,7 +72,7 @@ def get_product_list(data):
     return result
 
 def get_product_detail(product_id):
-    result = db.session.execute(db.select(Product).filter_by(id=product_id)).scalar()
+    result = db.session.execute(db.select(Product).filter_by(id=product_id)).get()
     if not result:
         abort(404, c_not_found='Item not available')
     return result

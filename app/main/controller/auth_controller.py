@@ -12,14 +12,19 @@ from app.main.service.auth_service import (
     get_user_by_email,
     save_new_user
 )
+from app.main.utils import validate_payload
 from app.main.utils.token import generate_token
 
 
 sign_up_ns = AuthApiModel.sign_up
 sign_in_ns = AuthApiModel.sign_in
 
+sign_up_schema = AuthApiModel.sign_up_schema
+sign_up_model = AuthApiModel.sign_up_model
+
 @sign_up_ns.route("")
 class SignUpController(Resource):
+    @sign_up_ns.expect(sign_up_model)
     def post(self):
         body = request.json
         email = body.get('email')
