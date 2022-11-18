@@ -13,10 +13,8 @@ class Category(db.Model):
         default=uuid4
     )
     name = db.Column(db.String, nullable=False)
-    image = db.Column(db.String, nullable=False)
     created_at = db.Column(db.DateTime(timezone=True), nullable=False, server_default=db.func.now())
     updated_at = db.Column(db.DateTime(timezone=True), onupdate=db.func.now())
-    # product_category = db.relationship('ProductCategory', back_populates='category')
 
     def __repr__(self) -> str:
         return "<Category(id={}, name={}, image={}, created_at={}, updated_at={})>".format(
