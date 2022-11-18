@@ -70,7 +70,6 @@ def get_product_list(data):
 ########### GET PRODUCT DETAIL ###########
 def get_product_detail(product_id):
     result = db.session.execute(db.select(Product).filter_by(id=product_id)).scalar()
-    print(result.images)
     if not result:
         abort(404, c_not_found='Item not available')
     return result
@@ -210,14 +209,11 @@ def upload_images(data, files=None):
             "bucket": 'image_fc',
             "path": "product/"
         }
+        ### Background task for upload images ###
         upload_to_gcp.apply_async(args=[upload_data], countdown=3)
 
     images_name = [e.filename for e in images]
     return images_name
-
-########### Background task for upload images ###########
-
-
 
 ########### Validation ###########
 def _validation(data: dict) -> dict:

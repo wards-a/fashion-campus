@@ -37,6 +37,7 @@ def create_app():
         os.environ["POSTGRES_DB"],
     )
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+    app.config['JSON_SORT_KEYS'] = False
     db.init_app(app)
     ### migrate ###
     from app.main.model import (
