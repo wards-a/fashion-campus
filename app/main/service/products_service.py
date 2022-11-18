@@ -7,7 +7,7 @@ from app.main.model.product import Product, ProductCondition
 from app.main.model.product_image import ProductImage
 from app.main.model.category import Category
 from app.main.utils.image_helper import allowed_file_media, rename_filestorage
-from app.main.utils.tasks import upload_to_gcp
+from app.main.utils.celery_tasks import upload_to_gcp
 
 ########### GET PRODUCT LIST ###########
 def get_product_list(data):

@@ -2,7 +2,7 @@ version: "3.4"
 services:
   flask_app:
     build: .
-    image: "fashion-campus"
+    image: "fashion-campus-be"
     ports:
       - "5000:5000"
     env_file:
@@ -18,7 +18,7 @@ services:
     - "flask_app"
   
   web:
-    image: raihanparl/startup-campus-fe:latest
+    image: adamawrd/startup-campus-fe:latest
     ports:
     - "3000:3000"
     env_file:

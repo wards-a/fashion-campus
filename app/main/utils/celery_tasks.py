@@ -6,7 +6,7 @@ from google.cloud import storage
 from app.main import celery
 from app.main.utils.image_helper import gcs_bucket
 
-@celery.task(name="app.main.utils.tasks.upload_to_gcp")
+@celery.task(name="app.main.utils.celery_tasks.upload_to_gcp")
 def upload_to_gcp(data: list):
     file = data['file']
     path = data['path']

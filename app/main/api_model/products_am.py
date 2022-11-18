@@ -25,17 +25,50 @@ class ProductImagesList(fields.Raw):
 class ProductsApiModel:
     api = Namespace("products")
 
-    ### Product list expected input (for swagger documentaion) ###
+    ### Product list expected input (for swagger documentaion only) ###
     product_list_model = api.parser()
-    product_list_model.add_argument('page', type=int, help='Page number', location='path')
-    product_list_model.add_argument('page_size', help='Products per page', type=int, location='path')
-    product_list_model.add_argument('sort_by', type=str, help='Sort by price asc or desc; Price a_z/Price z_a', location='path')
-    product_list_model.add_argument('category', type=str, help='Filter by category id ', location='path')
-    product_list_model.add_argument('price', type=str, help='Filter by price range; start,end', location='path')
-    product_list_model.add_argument('condition', type=str, help='Filter by product condition; new/used', location='path')
-    product_list_model.add_argument('product_name', type=str, help='Filter by product name', location='path')
+    product_list_m_dict = {
+        "page": {
+            "type": int,
+            "help": "Page number",
+            "location": "path"
+        },
+        "page_size": {
+            "type": int,
+            "help": "Products per page",
+            "location": "path"
+        },
+        "sort_by": {
+            "type": str,
+            "help": "Sort by price asc or desc; Price a_z/Price z_a",
+            "location": "path"
+        },
+        "category": {
+            "type": str,
+            "help": "Filter by category id",
+            "location": "path"
+        },
+        "price": {
+            "type": str,
+            "help": "Filter by price range; start,end",
+            "location": "path"
+        },
+        "condition": {
+            "type": str,
+            "help": "Filter by product condition; new/used",
+            "location": "path"
+        },
+        "product_name": {
+            "type": str,
+            "help": "Filter by product name",
+            "location": "path"
+        }
+    }
 
-    ### Product list response ###
+    for field, attr in product_list_m_dict.items():
+        product_list_model.add_argument(field, **attr)
+
+    ### Product list response marshalling ###
     product_list_format = api.model("ProductList", {
         "id": fields.String(example='ecc0c158-2ad5-4aea-a702-b00279940417'),
         "image": ProductImage(attribute="images", example="/image/kaus-apolo.jpg"),
@@ -50,7 +83,7 @@ class ProductsApiModel:
         "message": fields.String(default="Items successfully retrieved"),
     })
 
-    ### Product detail response ###
+    ### Product detail response marshalling ###
     product_detail_response = api.model("ProductDetail", {
         "id": fields.String,
         "title": fields.String(attribute="name"),
@@ -62,7 +95,7 @@ class ProductsApiModel:
         "category_name": fields.String(attribute="category.name")
     })
 
-    ### Product post and put expected input ###
+    ### Product post and put expected input - validation and swagger doc ###
     product_post_schema = {
         "type": "object",
         "properties": {
