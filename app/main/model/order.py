@@ -24,6 +24,7 @@ class Order(db.Model):
         db.Enum(ShippingMethod, values_callable=lambda obj: [e.value for e in obj]),
         nullable=False
     )
+    shipping_price = db.Column(db.Numeric(12, 2), nullable=False)
     created_at = db.Column(
         db.DateTime(timezone=True),
         nullable=False, 
