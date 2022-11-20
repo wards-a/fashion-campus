@@ -58,10 +58,9 @@ def create_app():
     migrate.init_app(app, db)
     ### routing ###
     from app.main.utils import route
-    routes = []
-    routes.extend(obj for ns, obj in route.routes.items() if ns.endswith('_ns'))
-    for r in routes:
-        api.add_namespace(r)
+    for ns, r in route.routes.items():
+        if ns.endswith('_ns'):
+            api.add_namespace(r)
     app.register_blueprint(blueprint)
 
     register_error_handler(app)
