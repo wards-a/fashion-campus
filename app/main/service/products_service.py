@@ -3,7 +3,7 @@ import re, uuid, copy, requests, base64, os
 from flask_restx import abort
 
 from app.main import db
-from app.main.model.product import Product, ProductCondition
+from app.main.model.product import Product
 from app.main.model.product_image import ProductImage
 from app.main.model.category import Category
 from app.main.utils.image_helper import allowed_file_media, rename_filestorage
@@ -14,62 +14,60 @@ def get_product_list(data):
     # order / sort by price
     sort_price = None
     if 'sort_by' in data:
-        if data['sort_by'].lower() == "price a_z":
+        if data['sort_by'] == "Price a_z":
             sort_price = db.asc(Product.price)
-        elif data['sort_by'].lower() == "price z_a":
+        elif data['sort_by'] == "Price z_a":
             sort_price = db.desc(Product.price)
 
     filters = tuple()
     # filter by category
     if 'category' in data:
-        category = re.sub('[ ]', '', data['category']).split(',')
-        try:
-            for id in category:
-                uuid.UUID(id)
-        except ValueError:
-            abort(400, 'Invalid category id')
+        category = data['category'].split(',')
         filters += (Product.category_id.in_(category), )
     else:
         filters += (Product.category_id.is_not(None), )
     # filter by price (lower, higher)
-    if 'price' in data:
-        try:
-            start, end = re.sub('[ ]', '', data['price']).split(',')
-            filters += (Product.price.between(int(start), int(end)), )
-        except ValueError:
-            abort(400, 'Invalid price range')
+    if 'harga' in data:
+        start, end = data['harga'].split(',')
+        filters += (Product.price.between(start, end), )
     # filter by conditon new/used
-    if 'condition' in data:
-        if data['condition'].lower() not in [e.value for e in ProductCondition]:
-            abort(400, 'Invalid condition, condition must be either new or used')
-        filters += (Product.condition == data['condition'].lower(), )
+    if 'kondisi' in data:
+        filters += (Product.condition == data['kondisi'], )
     # filter by similar names
     if 'product_name' in data:
         filters += (Product.name.like('%'+str(data['product_name'])+'%'), )
     # query; get product list
     try:
-        products = db.paginate(
-            db.select(Product)
-                .where(Product.is_deleted == "0")
-                .filter(*filters)
-                .order_by(sort_price),
-            page=int(data['page']),
-            per_page=int(data['page_size'])
-        )
-    except ValueError:
-        abort(400, 'Page and page size must be a number')
-    except IndexError:
-        abort(400, 'Page and page size is required')
+        if 'page' in data and 'page_size' in data:
+            result = db.paginate(
+                db.select(Product)
+                    .where(Product.is_deleted == "0")
+                    .filter(*filters)
+                    .order_by(sort_price),
+                page=int(data['page']),
+                per_page=int(data['page_size'])
+            )
+            response_body = {"data": result.items, "total_rows": result.total}
+            if not result.items:
+                response_body.update({'success': True, 'message': 'No items available'})
+        else:
+            result = db.session.execute(db.select(Product)).all()
+            products_list = [e[0] for e in result]
+            response_body = {"data": products_list, "total_rows": len(products_list)}
+    except ValueError as e:
+        abort(400, 'Page and page size must be numeric')
+    except db.exc.DataError as e:
+        abort(500, "Something went wrong", error=str(e.orig))
     # formatting for response marshalling
-    result = {"data": products.items, "total_rows": len(products.items)}
-    if not products.items:
-        result.update({'success': True, 'message': 'No items available'})
-
-    return result
+    
+    return response_body
 
 ########### GET PRODUCT DETAIL ###########
 def get_product_detail(product_id):
-    result = db.session.execute(db.select(Product).filter_by(id=product_id)).get()
+    try:
+        result = db.session.execute(db.select(Product).filter_by(id=product_id)).scalar()
+    except db.exc.DataError as e:
+        abort(500, "Something went wrong", error=str(e.orig))
     if not result:
         abort(404, c_not_found='Item not available')
     return result
@@ -147,14 +145,14 @@ def mark_as_deleted(product_id):
     return {"message": "Product deleted"}, 200
 
 ########### search by image and return category of image ###########
+from timeit import timeit
 def search_by_image(data):
     try:
         ### decode base64 string image ###
-        is_type_exists = re.search("data", data['image'])
-        if is_type_exists:
+        if 'data' in data['image']:
             media_type, image_b64 = data['image'].split(',')
-            media_type = re.findall(":(.*?);", media_type)
-            if media_type[0] != 'image/jpeg':
+            media_type = media_type[media_type.find(':')+1 : media_type.find(';')]
+            if media_type != 'image/jpeg':
                 abort(415, "Unsupported media type; only JPEG is supported")
             image_result = base64.b64decode(image_b64)
         else:
@@ -164,11 +162,12 @@ def search_by_image(data):
         files = {'file': image_result}
         r = requests.post(url, files=files)
         ### get category from response (html script) image prediction ###
-        category = re.findall("Detected Image: (.*?)<", r.text)
-        if category[0].lower() == "error":
+        response_text = r.text
+        category = response_text[response_text.find('Detected Image: ')+1 : response_text.find('<')]
+        if category.lower() == "error":
             raise IndexError()
         ### get the category id based on the prediction result ###
-        result = db.session.execute(db.select(Category).filter_by(name=category[0])).first()
+        result = db.session.execute(db.select(Category).filter_by(name=category)).first()
         if not result:
             abort(404, c_not_found="Product not found")
         response_data = {"category_id": result[0].id}
@@ -183,11 +182,12 @@ def search_by_image(data):
 def upload_images(data, files=None):
     def secure_name(name):
         ### replace some special characters with hyphens ###
-        name = re.sub('[`~!@#$%^*()_={}[\]|\\:;\'\"<>,.?/ ]', "-", name)
+        # name = re.sub('[`~!@#$%^*()_={}[\]|\\:;\'\"<>,.?/ ]', "-", name)
+        name = name.translate({ord(c): "-" for c in " `~!@#$%^*()_={}[]|\:;'\"<>,.?/"})
         name = name.replace('+', 'plus')
         name = name.replace('&', 'and')
         return name.lower()
-
+    
     if not files:
         abort(400, "Images required")
 
