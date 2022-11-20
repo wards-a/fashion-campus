@@ -17,7 +17,7 @@ class OrderDetail(db.Model):
     product_id = db.Column(UUID(as_uuid=True), db.ForeignKey('product.id'))
     size = db.Column(db.String, nullable=False)
     quantity = db.Column(db.Integer, nullable=False)
-    price = db.Column(db.Float, nullable=False)
+    price = db.Column(db.Numeric(12, 2), nullable=False)
     product = db.relationship("Product", backref="order_detail")
 
 
