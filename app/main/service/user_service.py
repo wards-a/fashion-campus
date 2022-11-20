@@ -1,5 +1,3 @@
-import re
-
 from flask import abort
 
 from app.main import db
@@ -15,8 +13,7 @@ def get_user_shipping_address(id):
     result = db.session.execute(db.select(ShippingAddress).filter_by(user_id=id)).scalar()
     if not result:
         abort(404, "Shipping address not available")
-        
-    # return ShippingAddress.__repr__(result)
+    
     return {
         "id": str(result.id),
         "name": result.name,

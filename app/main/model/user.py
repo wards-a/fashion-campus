@@ -31,7 +31,7 @@ class User(db.Model):
     email = db.Column(db.String, nullable=False)
     phone_number = db.Column(db.String, nullable=False)
     password = db.Column(db.String, nullable=False)
-    balance = db.Column(db.Float, nullable=False)
+    balance = db.Column(db.Numeric(12, 2), nullable=False)
     is_admin = db.Column(
         db.Enum(Admin, values_callable=lambda obj: [e.value for e in obj]),
         nullable=False,

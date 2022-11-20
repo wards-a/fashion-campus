@@ -23,7 +23,6 @@ class UsersController(Resource):
     @token_required
     def get(user, self):
         return {
-            "is_admin": user.is_admin.value,
             "name": user.name,
             "email": user.email,
             "phone_number": user.phone_number
