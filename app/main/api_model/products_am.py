@@ -1,6 +1,6 @@
 import copy
 
-from flask import abort, url_for
+from flask import url_for
 from flask_restx import Namespace, fields
 
 from app.main.model.product import ProductCondition

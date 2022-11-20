@@ -1,4 +1,4 @@
-import uuid, os
+import uuid
 
 from flask import request
 from flask_restx import Resource, abort
@@ -35,18 +35,15 @@ class ProductsController(Resource):
     @products_ns.expect(product_list_model)
     @products_ns.marshal_with(product_list_response_m)
     def get(self):
-        try:
-            params = request.args
-        except:
-            abort(400, "Request data invalid")
+        params = request.args
         return get_product_list(params)
 
     @products_ns.expect(product_post_model)
     @token_required
-    def post(self):
+    @validate_payload(product_post_schema)
+    def post(user, self):
         data = request.form
         images = request.files
-        validate_payload(instance=data, schema=product_post_schema)
         return save_new_product(data, files=images)
     
     @products_ns.expect(product_put_model)
@@ -63,11 +60,7 @@ class ProductsController(Resource):
 class ProductController(Resource):
     @products_ns.marshal_with(product_detail_response_m, envelope="data")
     def get(self, product_id):
-        try:
-            uuid.UUID(product_id)
-            return get_product_detail(product_id)
-        except ValueError:
-            abort(400, "Invalid product id")
+        return get_product_detail(product_id)
 
     @token_required
     def delete(self, product_id):
