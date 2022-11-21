@@ -43,12 +43,11 @@ class UserAddressController(Resource):
 class UserBalanceController(Resource):
     @token_required
     def get(user, self):
-        balance = get_user_balance(user.id)
-        return {"balance": balance}
+        return get_user_balance(user.id)
     
     @user_ns.expect(user_balance_post_model)
     @token_required
-    def post(user, self):
+    def put(user, self):
         body = request.json
         # validate_payload(instance=body, schema=user_balance_post_schema)
         return top_up_balance(user.id, body)
