@@ -6,54 +6,64 @@ from app.main.model.shipping_address import ShippingAddress
 
 
 def get_user_balance(id):
-    result = db.session.execute(db.select(User.balance).filter_by(id=id)).scalar()
-    return result
+    try:
+        balance = db.session.execute(db.select(User.balance).filter_by(id=id)).scalar()
+        return {"code": 200, "message": "Success", "data": {"balance": int(balance)}}, 200
+    except Exception as e:
+        return {"code": 500, "message": str(e), "data": {}}, 500
 
 def get_user_shipping_address(id):
     result = db.session.execute(db.select(ShippingAddress).filter_by(user_id=id)).scalar()
     if not result:
         abort(404, "Shipping address not available")
     
-    return {
+    return {"code": 200, "message": "Success", "data": {
         "id": str(result.id),
         "name": result.name,
         "phone_number": result.phone_number,
         "address": result.address,
         "city": result.city,
-    }
+    }}, 200
 
 def change_shipping_address(id, data):
-    data['user_id'] = id
-    
-    shipping_address = db.session.execute(db.select(ShippingAddress).filter_by(user_id=id)).scalar()
-    if shipping_address:
-        # update
-        db.session.execute(
-            db.update(ShippingAddress)
-            .where(ShippingAddress.user_id == id)
-            .values(data)
-        )
-    else:
-        # insert
-        db.session.execute(
-            db.insert(ShippingAddress)
-            .values(data)
-        )
-    
-    db.session.commit()
-    
-    return {"message": "Change shipping address success"}, 200
-
-def top_up_balance(id, data):
-    if 'amount' in data and data['amount'] > 0 :
-        try:
-            user = db.session.execute(db.select(User).filter_by(id=id)).scalar_one()
-        except db.exc.NoResultFound:
-            abort(404, "User not available")
+    try:
+        data['user_id'] = id
+        shipping_address = db.session.execute(db.select(ShippingAddress).filter_by(user_id=id)).scalar()
+        if shipping_address:
+            # update
+            db.session.execute(
+                db.update(ShippingAddress)
+                .where(ShippingAddress.user_id == id)
+                .values(data)
+            )
+        else:
+            # insert
+            db.session.execute(
+                db.insert(ShippingAddress)
+                .values(data)
+            )
         
-        user.balance += data['amount']
         db.session.commit()
         
-        return {"message": "Top Up balance success"}, 200
-    
-    abort(400, 'Invalid amount')
+        return {"code": 200, "message": "Change shipping address success"}, 200
+    except Exception as e:
+        return {"code": 500, "message": str(e)}, 500
+
+def top_up_balance(id, data):
+    try:
+        if 'amount' in data and data['amount'] > 0 :
+            try:
+                user = db.session.execute(db.select(User).filter_by(id=id)).scalar_one()
+            except db.exc.NoResultFound:
+                abort(404, "User not available")
+            
+            user.balance += data['amount']
+            db.session.commit()
+            
+            balance = db.session.execute(db.select(User.balance).filter_by(id=id)).scalar()
+            
+            return {"code": 200, "message": "Top Up balance success", "data": {"balance": int(balance)}}, 200
+        
+        abort(400, 'Invalid amount')
+    except Exception as e:
+        return {"code": 500, "message": str(e)}, 500
