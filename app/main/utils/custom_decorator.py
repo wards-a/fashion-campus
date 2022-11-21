@@ -35,3 +35,10 @@ def validate_payload(schema):
             return func(*args, **kwargs)
         return decorated_function
     return decorator
+
+
+def is_admin(func):
+    @wraps(func)
+    def decorated_function(*args, **kwargs):
+        print(*args)
+        print(**kwargs)

@@ -14,12 +14,12 @@ db = SQLAlchemy()
 migrate = Migrate()
 bcrypt = Bcrypt()
 blueprint = Blueprint("api", __name__)
-api = Api(blueprint, title="FASHION CAMPUS API")
+api = Api(blueprint, title="FASHION CAMPUS API", doc='/api')
 celery = Celery(__name__)
 cors = CORS()
 
 def create_app():
-    app = Flask(__name__)
+    app = Flask(__name__, static_url_path="", static_folder="static")
     app.config['SECRET_KEY'] = os.environ["SECRET_KEY"]
     app.config['MAX_CONTENT_LENGTH'] = 2 * 1024 * 1024
     ### cors config ###
@@ -38,7 +38,7 @@ def create_app():
         os.environ["POSTGRES_PASSWORD"],
         os.environ["POSTGRES_HOST"],
         os.environ["POSTGRES_PORT"],
-        os.environ["POSTGRES_DB"],
+        os.environ["POSTGRES_DB"]
     )
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
     app.config['JSON_SORT_KEYS'] = False

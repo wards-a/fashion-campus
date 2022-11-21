@@ -4,7 +4,7 @@ from flask import jsonify, request
 from flask_restx import Resource
 
 from app.main.api_model.user_am import UserApiModel
-from app.main.utils import validate_payload
+from app.main.utils import custom_decorator
 from app.main.utils.token import token_required
 from app.main.service.user_service import (
     get_user_balance,

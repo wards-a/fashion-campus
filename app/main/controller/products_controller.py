@@ -12,7 +12,7 @@ from app.main.service.products_service import (
     mark_as_deleted,
     search_by_image
 )
-from app.main.utils.validate_payload import validate_payload
+from app.main.utils.custom_decorator import validate_payload, is_admin
 from app.main.utils.token import token_required
 
 
@@ -44,6 +44,7 @@ class ProductsController(Resource):
     def post(user, self):
         data = request.form
         images = request.files
+        return
         return save_new_product(data, files=images)
     
     @products_ns.expect(product_put_model)
