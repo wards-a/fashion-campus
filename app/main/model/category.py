@@ -15,12 +15,13 @@ class Category(db.Model):
     name = db.Column(db.String, nullable=False)
     created_at = db.Column(db.DateTime(timezone=True), nullable=False, server_default=db.func.now())
     updated_at = db.Column(db.DateTime(timezone=True), onupdate=db.func.now())
+    product = db.relationship('Product', back_populates="category")
 
     def __repr__(self) -> str:
-        return "<Category(id={}, name={}, image={}, created_at={}, updated_at={})>".format(
+        return "<Category(id={}, name={}, created_at={}, updated_at={}, product={})>".format(
             self.id,
             self.name,
-            self.image,
             self.created_at,
-            self.updated_at
+            self.updated_at,
+            self.product
         )

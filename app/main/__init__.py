@@ -19,7 +19,7 @@ celery = Celery(__name__)
 cors = CORS()
 
 def create_app():
-    app = Flask(__name__, static_url_path="", static_folder="static")
+    app = Flask(__name__)
     app.config['SECRET_KEY'] = os.environ["SECRET_KEY"]
     app.config['MAX_CONTENT_LENGTH'] = 2 * 1024 * 1024
     ### cors config ###

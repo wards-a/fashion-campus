@@ -27,11 +27,11 @@ def get_product_list(data):
     else:
         filters += (Product.category_id.is_not(None), )
     # filter by price (lower, higher)
-    if 'harga' in data:
+    if 'harga' in data: # key: price
         start, end = data['harga'].split(',')
         filters += (Product.price.between(start, end), )
     # filter by conditon new/used
-    if 'kondisi' in data:
+    if 'kondisi' in data: # key: condition
         filters += (Product.condition == data['kondisi'], )
     # filter by similar names
     if 'product_name' in data:
@@ -145,7 +145,6 @@ def mark_as_deleted(product_id):
     return {"message": "Product deleted"}, 200
 
 ########### search by image and return category of image ###########
-from timeit import timeit
 def search_by_image(data):
     try:
         ### decode base64 string image ###
