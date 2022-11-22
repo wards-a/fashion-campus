@@ -11,7 +11,7 @@ services:
   celery_worker:
     build: .
     image: "fashion-campus-worker"
-    command: "celery -A app.main.celery worker --loglevel=INFO"
+    command: "celery -A app.main.celery worker --loglevel=INFO --uid=nobody --gid=nogroup"
     env_file:
     - ".env"
     depends_on:

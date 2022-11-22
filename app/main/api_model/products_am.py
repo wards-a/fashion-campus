@@ -48,12 +48,12 @@ class ProductsApiModel:
             "help": "Filter by category id",
             "location": "path"
         },
-        "price": {
+        "harga": { # price
             "type": str,
             "help": "Filter by price range; start,end",
             "location": "path"
         },
-        "condition": {
+        "kondisi": { # condition
             "type": str,
             "help": "Filter by product condition; new/used",
             "location": "path"
