@@ -1,8 +1,8 @@
 """empty message
 
-Revision ID: 5ec3f48138f7
+Revision ID: 21f1aba57d44
 Revises: 
-Create Date: 2022-11-02 21:35:40.417180
+Create Date: 2022-11-21 22:19:11.034088
 
 """
 from alembic import op
@@ -10,7 +10,7 @@ import sqlalchemy as sa
 from sqlalchemy.dialects import postgresql
 
 # revision identifiers, used by Alembic.
-revision = '5ec3f48138f7'
+revision = '21f1aba57d44'
 down_revision = None
 branch_labels = None
 depends_on = None
@@ -21,7 +21,6 @@ def upgrade():
     op.create_table('category',
     sa.Column('id', postgresql.UUID(as_uuid=True), nullable=False),
     sa.Column('name', sa.String(), nullable=False),
-    sa.Column('image', sa.String(), nullable=False),
     sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=False),
     sa.Column('updated_at', sa.DateTime(timezone=True), nullable=True),
     sa.PrimaryKeyConstraint('id')
@@ -33,7 +32,7 @@ def upgrade():
     sa.Column('email', sa.String(), nullable=False),
     sa.Column('phone_number', sa.String(), nullable=False),
     sa.Column('password', sa.String(), nullable=False),
-    sa.Column('balance', sa.Float(), nullable=False),
+    sa.Column('balance', sa.Numeric(precision=12, scale=2), nullable=False),
     sa.Column('is_admin', sa.Enum('0', '1', name='admin'), server_default='0', nullable=False),
     sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=False),
     sa.Column('updated_at', sa.DateTime(timezone=True), nullable=True),
@@ -50,16 +49,15 @@ def upgrade():
     sa.Column('id', postgresql.UUID(as_uuid=True), nullable=False),
     sa.Column('category_id', postgresql.UUID(as_uuid=True), nullable=True),
     sa.Column('name', sa.String(), nullable=False),
-    sa.Column('description', sa.Text(), nullable=False),
+    sa.Column('description', sa.Text(), nullable=True),
     sa.Column('size', sa.ARRAY(sa.String()), server_default='{S, M, L, XL}', nullable=False),
     sa.Column('price', sa.Numeric(precision=12, scale=2), nullable=False),
     sa.Column('condition', sa.Enum('new', 'used', name='productcondition'), nullable=False),
     sa.Column('is_deleted', sa.Enum('0', '1', name='isdelete'), server_default='0', nullable=False),
     sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=False),
     sa.Column('updated_at', sa.DateTime(timezone=True), nullable=True),
-    sa.ForeignKeyConstraint(['category_id'], ['category.id'], ),
-    sa.PrimaryKeyConstraint('id'),
-    sa.UniqueConstraint('name')
+    sa.ForeignKeyConstraint(['category_id'], ['category.id'], ondelete='SET NULL'),
+    sa.PrimaryKeyConstraint('id')
     )
     op.create_table('shipping_address',
     sa.Column('id', postgresql.UUID(as_uuid=True), nullable=False),
@@ -90,6 +88,7 @@ def upgrade():
     sa.Column('user_id', postgresql.UUID(as_uuid=True), nullable=True),
     sa.Column('shipping_address_id', postgresql.UUID(as_uuid=True), nullable=True),
     sa.Column('shipping_method', sa.Enum('same day', 'next day', name='shippingmethod'), nullable=False),
+    sa.Column('shipping_price', sa.Numeric(precision=12, scale=2), nullable=False),
     sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=False),
     sa.ForeignKeyConstraint(['shipping_address_id'], ['shipping_address.id'], ),
     sa.ForeignKeyConstraint(['user_id'], ['users.id'], ),
@@ -100,7 +99,6 @@ def upgrade():
     sa.Column('product_id', postgresql.UUID(as_uuid=True), nullable=True),
     sa.Column('image', sa.String(), nullable=False),
     sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=False),
-    sa.Column('updated_at', sa.DateTime(timezone=True), nullable=True),
     sa.ForeignKeyConstraint(['product_id'], ['product.id'], ),
     sa.PrimaryKeyConstraint('id')
     )
@@ -110,7 +108,7 @@ def upgrade():
     sa.Column('product_id', postgresql.UUID(as_uuid=True), nullable=True),
     sa.Column('size', sa.String(), nullable=False),
     sa.Column('quantity', sa.Integer(), nullable=False),
-    sa.Column('price', sa.Float(), nullable=False),
+    sa.Column('price', sa.Numeric(precision=12, scale=2), nullable=False),
     sa.ForeignKeyConstraint(['order_id'], ['order.id'], ),
     sa.ForeignKeyConstraint(['product_id'], ['product.id'], ),
     sa.PrimaryKeyConstraint('id')

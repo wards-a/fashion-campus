@@ -12,7 +12,7 @@ from app.main.service.auth_service import (
     get_user_by_email,
     save_new_user
 )
-from app.main.utils import validate_payload
+from app.main.utils import custom_decorator
 from app.main.utils.token import generate_token
 
 

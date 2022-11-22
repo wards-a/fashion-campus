@@ -35,3 +35,13 @@ def validate_payload(schema):
             return func(*args, **kwargs)
         return decorated_function
     return decorator
+
+
+def admin_level(func):
+    @wraps(func)
+    def decorated_function(*args, **kwargs):
+        user = args[0]
+        if user.type.value != 'seller':
+            abort(403, "Access denied, you don't have permission to access the source", error="Forbidden")
+        return func(*args, **kwargs)
+    return decorated_function
