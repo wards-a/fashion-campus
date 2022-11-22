@@ -5,15 +5,15 @@ from app.main.model.cart import Cart
 from app.main.model.user import User
 from app.main.model.shipping_address import ShippingAddress
 from app.main.service.cart_service import (
-    get_user_cart
+    get_cart
 )
 
 
 def get_shipping_price(id):
     try:
-        cart = get_user_cart(id)
+        cart = get_cart(id)
         # check cart is empty
-        if not cart:
+        if not cart.data:
             return {"code": 400, "message": "Don't have a cart", "data": []}, 400
         
         # calculate total price
