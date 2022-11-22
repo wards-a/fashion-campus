@@ -1,6 +1,7 @@
 from app.main.utils.image_helper import allowed_file_media, gcs_bucket
 from google.api_core import exceptions
 
+
 def allowed_file(filename):
     return allowed_file_media(filename=filename)
 

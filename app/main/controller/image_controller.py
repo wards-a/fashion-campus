@@ -31,6 +31,6 @@ image_ns = ImageApiModel.api
 class ImageController(Resource):
     def get(self, image_extension):
         extension = allowed_file(image_extension)
-        extension = "jpeg" if extension=="jpg" else extension
+        mime_type = "jpeg" if extension=="jpg" else extension
         content =  serve_image(image_extension)
-        return send_file(io.BytesIO(content), mimetype=f"image/{extension}")
+        return send_file(io.StringIO(content), mimetype=f"image/{mime_type}")
