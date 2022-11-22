@@ -18,3 +18,5 @@ class HomeApiModel:
         "title": fields.String(attribute="name"),
         "image": ProductImage(attribute='images')
     })
+
+    home_banner_model = api.clone("HomeBanner", home_category_model)

@@ -1,8 +1,9 @@
 from app.main import db
 from app.main.model.category import Category
 from app.main.model.product import Product
+from app.main.model.order_detail import OrderDetail
 
-def get_all_categories():
+def get_home_categories():
     category = db.session.execute(
         db.select(Category)
         .order_by(Category.created_at.desc())
@@ -26,3 +27,18 @@ def get_all_categories():
         setattr(e, 'images', product[0].images)
         
     return category
+
+def get_banner():
+    latest = db.session.execute(db.select(Product).order_by(Product.created_at.desc())).first()
+    best_seller = db.session.execute(
+        db.select(Product, db.func.count(OrderDetail.product_id).label("best_seller"))
+        .join(Product)
+        .order_by(db.desc("best_seller"))
+        .group_by(Product.id)
+    ).first()
+
+    banner = list()
+    banner.append(latest[0])
+    banner.append(best_seller[0])
+
+    return banner
