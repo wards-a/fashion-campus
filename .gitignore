@@ -2,5 +2,4 @@ fashion-campus/
 *.pyc
 __pycache__/
 .vscode
-.
-image_history
+.pytest_cache

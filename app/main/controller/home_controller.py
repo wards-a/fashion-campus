@@ -5,7 +5,7 @@ from  app.main.service.home_service import get_all_categories
 
 
 home_ns = HomeApiModel.api
-all_category_model = HomeApiModel.all_category_model
+home_category_model = HomeApiModel.home_category_model
 
 @home_ns.route("/banner")
 class HomeBannerController(Resource):
@@ -14,6 +14,6 @@ class HomeBannerController(Resource):
 
 @home_ns.route("/category")
 class HomeCategoryController(Resource):
-    @home_ns.marshal_list_with(all_category_model, envelope="data")
+    @home_ns.marshal_list_with(home_category_model, envelope="data")
     def get(self):
         return get_all_categories()
