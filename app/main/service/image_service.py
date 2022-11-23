@@ -12,7 +12,7 @@ def serve_image(image):
         with blob.open('rb') as f:
             content = f.read()
     except exceptions.NotFound:
-        blob = bucket.blob('product/404notfound.jpg')
+        blob = bucket.blob('product/default.jpg')
         with blob.open('rb') as f:
             content = f.read()
     return content

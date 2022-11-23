@@ -12,9 +12,6 @@ To get or display picture in the platform
 - Requirements:
     - Only image extension (jpg, jpeg, png)
     - or webp
-
-- NOTE:
-    - For any error messages, should return (message=error, user already exists)
 """
 import io
 
@@ -33,4 +30,4 @@ class ImageController(Resource):
         extension = allowed_file(image_extension)
         mime_type = "jpeg" if extension=="jpg" else extension
         content =  serve_image(image_extension)
-        return send_file(io.StringIO(content), mimetype=f"image/{mime_type}")
+        return send_file(io.BytesIO(content), mimetype=f"image/{mime_type}")
