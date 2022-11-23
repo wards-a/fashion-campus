@@ -43,7 +43,7 @@ class Product(db.Model):
 
     def __repr__(self):
         return "<Product(id={}, name={}, description={}, size={}, price={}, condition={}, " \
-            "is deleted={}, created_at={}, updated_at={})>".format(
+            "is deleted={}, created_at={}, updated_at={}, category_id={})>".format(
             self.id,
             self.name,
             self.description,
@@ -52,5 +52,6 @@ class Product(db.Model):
             self.condition,
             self.is_deleted,
             self.created_at,
-            self.updated_at
+            self.updated_at,
+            self.category_id
         )
