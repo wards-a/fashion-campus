@@ -1,4 +1,4 @@
-import re
+import re, json
 
 from flask import request
 from functools import wraps
@@ -11,6 +11,9 @@ def validate_payload(schema):
         @wraps(func)
         def decorated_function(*args, **kwargs):
             content_type = request.headers.get('Content-Type')
+            if 'text/plain' in content_type:
+                data = request.get_data()
+                instance = json.loads(data.decode('utf-8'))
             if 'multipart/form-data' in content_type:
                 instance = request.form
             if 'application/json' in content_type:

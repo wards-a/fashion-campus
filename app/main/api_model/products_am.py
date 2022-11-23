@@ -10,15 +10,21 @@ class ProductImage(fields.Raw):
     __schema_type__ = "string"
 
     def format(self, value):
-        return url_for("api.image", image_extension=value[0].image)
+        if value:
+            return url_for("api.image", image_extension=value[0].image)
+        else:
+            return url_for("api.image", image_extension="default.jpg")
 
 class ProductImagesList(fields.Raw):
     __schema_type__ = "string"
 
     def format(self, value):
         images_url = list()
-        for i in value:
-            images_url.append(url_for("api.image", image_extension=i.image))
+        if value:
+            for i in value:
+                images_url.append(url_for("api.image", image_extension=i.image))
+        else:
+            images_url.append(url_for("api.image", image_extension="default.jpg"))
         return images_url
 
 
@@ -90,6 +96,7 @@ class ProductsApiModel:
         "size": fields.Raw,
         "product_detail": fields.Raw(attribute="description"),
         "price": fields.Integer,
+        "condition": fields.String,
         "images_url": ProductImagesList(attribute="images"),
         "category_id": fields.String,
         "category_name": fields.String(attribute="category.name")
@@ -109,7 +116,7 @@ class ProductsApiModel:
                 "example": "Kaus Apolo"
             },
             "description": {
-                "type": "string",
+                "type": ["string", "null"],
                 "example": "Kaus apolo dengan bahan lembut dan halus dijamin nyaman di badan anda"
             },
             "condition": {
@@ -133,13 +140,16 @@ class ProductsApiModel:
                 "example": "c86ffcfe-5108-4f99-9c6a-52560d9c667b"
             },
             "price": {
-                "type": "string",
+                "type": "integer",
                 "minimum": 1,
                 "errorMessage": {
                     "required": "Price is required",
                     "minimum": "Price must be positive"
                 },
                 "example": 150000
+            },
+            "image": {
+                "type": "string"                
             }
         },
         "required": ["product_name", "condition", "category", "price"]
@@ -157,7 +167,7 @@ class ProductsApiModel:
         },
         "example": "02815e33-e4aa-4973-b4e0-22ed2e82966c"
     }
-    product_put_schema['required'] = ["product_name", "images", "condition", "category", "price", "product_id"]
+    product_put_schema['required'] = ["product_name", "condition", "category", "price", "product_id"]
     product_put_model = api.schema_model("ProductPutModel", product_put_schema)
 
     ###### Search by image ######
