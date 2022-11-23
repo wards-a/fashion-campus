@@ -203,12 +203,11 @@ def _upload_images(data):
     name = secure_name(data['product_name'])
     images = list()
     no = 1
-    
     if 'last_image' in data and data['last_image']:
         last_section = data['last_image'].split("-")[-1]
         last_section = last_section.split(".")[0]
-        no = int(last_section) if last_section.isdigit() else no
-    
+        no = int(last_section)+1 if last_section.isdigit() else no
+
     for e in data['images']:
         image = dict()
         ### validation ###
