@@ -1,6 +1,8 @@
 from flask import url_for
 from flask_restx import Namespace, fields
 
+from app.main.api_model.products_am import ProductImage
+
 
 class CategoryImage(fields.Raw):
     __schema_type__ = "string"
@@ -13,5 +15,8 @@ class HomeApiModel:
 
     home_category_model = api.model("HomeCategory", {
         "id": fields.String(),
-        "title": fields.String(attribute="name")
+        "title": fields.String(attribute="name"),
+        "image": ProductImage(attribute='images')
     })
+
+    home_banner_model = api.clone("HomeBanner", home_category_model)

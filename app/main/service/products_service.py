@@ -1,4 +1,4 @@
-import re, uuid, copy, requests, base64, os
+import re, copy, requests, base64, os
 
 from flask_restx import abort
 
@@ -6,8 +6,8 @@ from app.main import db
 from app.main.model.product import Product
 from app.main.model.product_image import ProductImage
 from app.main.model.category import Category
-from app.main.utils.image_helper import allowed_file_media, rename_filestorage
-from app.main.utils.celery_tasks import upload_to_gcp
+from app.main.utils.image_helper import generate_filename, b64str_to_byte, allowed_mimetype
+from app.main.utils.celery_tasks import upload_to_gcs, remove_from_gcs
 
 ########### GET PRODUCT LIST ###########
 def get_product_list(data):
@@ -66,6 +66,7 @@ def get_product_list(data):
 def get_product_detail(product_id):
     try:
         result = db.session.execute(db.select(Product).filter_by(id=product_id)).scalar()
+        result.condition = result.condition.value
     except db.exc.DataError as e:
         abort(500, "Something went wrong", error=str(e.orig))
     if not result:
@@ -74,7 +75,7 @@ def get_product_detail(product_id):
 
 ########### Admin Page ###########
 ########### Save new product ###########
-def save_new_product(data, files=None):
+def save_new_product(data):
     result_data = _validation(data)
     try:
         ### store new product ###
@@ -82,17 +83,20 @@ def save_new_product(data, files=None):
         db.session.add(new_product)
         db.session.flush()
         ### upload image ###
-        images_name = upload_images(new_product, files=files)
-        ### store filename to db ###
-        images_obj = list()
-        for image in images_name:
-            images_obj.append(
-                ProductImage(
-                    product_id = new_product.id,
-                    image = image
+        if 'images' in data:
+            images_name = _upload_images(data)
+            ### store filename to db ###
+            images_obj = list()
+            for name in images_name:
+                images_obj.append(
+                    ProductImage(
+                        product_id = new_product.id,
+                        image = name
+                    )
                 )
-            )
-        db.session.add_all(images_obj)
+            db.session.add_all(images_obj)
+
+        db.session.flush()
     except:
         db.session.rollback()
         abort(500, "Product could not be added")
@@ -109,26 +113,44 @@ def save_product_changes(data):
             .where(Product.id == data['product_id'])
             .values(**result_data)
         )
-        db.session.execute(
-            db.delete(ProductImage).where(ProductImage.product_id == data['product_id'])
-        )
+        if 'images' in data:
+            keep_images = [e.split('/')[-1] for e in data['images'] if 'data' not in e]
+            new_images = [e for e in data['images'] if 'data' in e]
 
-        images = re.sub('[[\]]', '', data['images']).split(', ')
-        images_obj = list()
-        for image in images:
-            allowed_file_media(image)
-            images_obj.append(
-                ProductImage(
-                    product_id = data['product_id'],
-                    image = image
-                )
-            )
-        db.session.add_all(images_obj)
+            deleted_rows = db.session.execute(
+                db.delete(ProductImage)
+                .where(ProductImage.product_id == data['product_id'])
+                .filter(ProductImage.image.not_in(keep_images))
+                .returning(ProductImage.image)
+            ).fetchall()
+
+            if deleted_rows:
+                images_to_delete = [e[0] for e in deleted_rows]
+                _remove_from_gcs(images_to_delete)
+            
+            if new_images:
+                data['images'] = new_images
+                if keep_images:
+                    data.update({
+                        "last_image": keep_images[-1]
+                    })
+                images_name = _upload_images(data)
+                images_obj = list()
+                for name in images_name:
+                    images_obj.append(
+                        ProductImage(
+                            product_id = data['product_id'],
+                            image = name
+                        )
+                    )
+                db.session.add_all(images_obj)
+    
+        db.session.flush()
     except:
         db.session.rollback()
         abort(500, "Product could not be updated")
-    else:
-        db.session.commit()
+    
+    db.session.commit()
 
     return {"message": "Product updated"}, 200
 
@@ -147,15 +169,7 @@ def mark_as_deleted(product_id):
 ########### search by image and return category of image ###########
 def search_by_image(data):
     try:
-        ### decode base64 string image ###
-        if 'data' in data['image']:
-            media_type, image_b64 = data['image'].split(',')
-            media_type = media_type[media_type.find(':')+1 : media_type.find(';')]
-            if media_type != 'image/jpeg':
-                abort(415, "Unsupported media type; only JPEG is supported")
-            image_result = base64.b64decode(image_b64)
-        else:
-            image_result = base64.b64decode(data['image'])
+        image_result = b64str_to_byte(data['image'])
         ### send request to image prediction server ###
         url = os.environ['IMAGE_PREDICTION_URL']
         files = {'file': image_result}
@@ -178,41 +192,68 @@ def search_by_image(data):
     return response_data
 
 ########### Save Images ###########
-def upload_images(data, files=None):
+def _upload_images(data):
     def secure_name(name):
         ### replace some special characters with hyphens ###
-        # name = re.sub('[`~!@#$%^*()_={}[\]|\\:;\'\"<>,.?/ ]', "-", name)
         name = name.translate({ord(c): "-" for c in " `~!@#$%^*()_={}[]|\:;'\"<>,.?/"})
         name = name.replace('+', 'plus')
         name = name.replace('&', 'and')
         return name.lower()
     
-    if not files:
-        abort(400, "Images required")
-
-    images = files.getlist('images')
+    name = secure_name(data['product_name'])
+    images = list()
+    no = 1
     
-    for image in images:
-        allowed_file_media(image.filename)
+    if 'last_image' in data and data['last_image']:
+        last_section = data['last_image'].split("-")[-1]
+        last_section = last_section.split(".")[0]
+        no = int(last_section) if last_section.isdigit() else no
+    
+    for e in data['images']:
+        image = dict()
+        ### validation ###
+        media_type = e.split(',')[0]
+        media_type = media_type[media_type.find(':')+1 : media_type.find(';')]
+        allowed_mimetype(media_type)
+        ### decode ###
+        result_byte = b64str_to_byte(e)
+        ### generate filename ###
+        filename = generate_filename(
+            name=name,
+            media_type=media_type, 
+            condition=data['condition'],
+            other=str(no).zfill(2)
+        )
 
-    name = secure_name(data.name)
-    condition = data.condition
-    rename_filestorage(images, name=name, condition=condition, many=True)
+        image.update({
+            "filename": filename,
+            "media_type": media_type,
+            "file": result_byte
+        })
+        images.append(image)
+        no+=1
 
     for image in images:
-        upload_file = dict(**image.__dict__)
-        upload_file['stream'] = base64.b64encode(image.read())
-        upload_file.pop('_parsed_content_type')
-        upload_data = {
-            "file": upload_file,
-            "bucket": 'image_fc',
+        data = {
+            "file": image,
+            "bucket": "image_fc",
             "path": "product/"
         }
-        ### Background task for upload images ###
-        upload_to_gcp.apply_async(args=[upload_data], countdown=3)
+        upload_to_gcs.apply_async(kwargs=data, countdown=3)
 
-    images_name = [e.filename for e in images]
+    images_name = [e['filename'] for e in images]
     return images_name
+
+def _remove_from_gcs(data: list):
+    for filename in data:
+        remove_from_gcs.apply_async(
+            kwargs={
+                "filename": filename,
+                "bucket": "image_fc",
+                "path": "product/"
+            },
+            countdown=3
+        )
 
 ########### Validation ###########
 def _validation(data: dict) -> dict:
@@ -221,7 +262,6 @@ def _validation(data: dict) -> dict:
     And format the data for the object at the same time.
     """
     result_data = copy.deepcopy(data)
-    result_data = result_data.to_dict()
     ########### Product unique based on name, category, and condition ###########
     product_exists = db.session.execute(db.select(Product).filter_by(name=result_data['product_name'])).first()
     if product_exists:
@@ -231,20 +271,13 @@ def _validation(data: dict) -> dict:
                 abort(400, 'There is already a product with that name, category, and condition')
             if 'product_id' in result_data and result_data['product_id'] != str(product_exists[0].id):
                 abort(400, 'There is already a product with that name, category, and condition')
-    ########### is category exists ###########
-    category_exist = db.session.execute(db.select(Category).filter_by(id=result_data['category'])).first()
-    if not category_exist:
-        abort(400, 'Category does not exist')
-    ########### is product id valid ###########
-    if 'product_id' in result_data:
-        try:
-            uuid.UUID(result_data['product_id'])
-        except ValueError:
-            abort(400, 'Invalid product id')
-        ### remove product id properties ###
-        result_data.pop('product_id')
+
     ### Rename properties to match database model ###
     result_data.update({'name': result_data.pop('product_name')})
     result_data.update({'category_id': result_data.pop('category')})
-    ### remove images properties ###
+    ### remove properties ###
+    if 'product_id' in result_data:
+        result_data.pop('product_id')
+    if 'images' in result_data:
+        result_data.pop('images')
     return result_data
