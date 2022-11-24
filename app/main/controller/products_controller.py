@@ -1,4 +1,4 @@
-import uuid
+import uuid, json
 
 from flask import request
 from flask_restx import Resource, abort
@@ -43,21 +43,18 @@ class ProductsController(Resource):
     @admin_level
     @validate_payload(product_post_schema)
     def post(user, self):
-        data = request.form
-        images = request.files
-        print(request.form)
-        print(request.json)
-        return save_new_product(data, files=images)
+        data = request.get_data()
+        data = json.loads(data.decode('utf-8'))
+        return save_new_product(data)
     
     @products_ns.expect(product_put_model)
     @token_required
-    def put(self):
-        try:
-            body = request.json
-        except:
-            abort(400, "Request data invalid")
-        validate_payload(instance=body, schema=product_put_schema)
-        return save_product_changes(body)
+    @admin_level
+    @validate_payload(product_put_schema)
+    def put(user, self):
+        data = request.get_data()
+        data = json.loads(data.decode('utf-8'))
+        return save_product_changes(data)
 
 @products_ns.route("/<product_id>")
 class ProductController(Resource):
@@ -76,10 +73,7 @@ class ProductController(Resource):
 @products_ns.route("/search_image")
 class SearchImageController(Resource):
     @products_ns.expect(search_by_image_model)
+    @validate_payload(search_by_image_schema)
     def post(self):
-        try:
-            image_b64 = request.get_json('image')
-        except:
-            abort(400, "Request data invalid")
-        validate_payload(instance=image_b64, schema=search_by_image_schema)
+        image_b64 = request.get_json('image')
         return search_by_image(image_b64)
