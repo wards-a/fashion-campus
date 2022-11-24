@@ -4,15 +4,7 @@ from uuid import uuid4
 from sqlalchemy.dialects.postgresql import UUID
 
 from app.main import db
-
-
-class Role(enum.Enum):
-    SELLER = "seller"
-    BUYER = "buyer"
-
-class Admin(enum.Enum):
-    NO = '0'
-    YES = '1'
+from app.main.model.enum_model import Role, Admin
 
 
 class User(db.Model):
