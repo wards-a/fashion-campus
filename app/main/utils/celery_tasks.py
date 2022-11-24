@@ -28,4 +28,3 @@ def remove_from_gcs(filename=None, bucket=None, path=None):
 
     blob = bucket.blob(path+filename)
     blob.delete()
-    

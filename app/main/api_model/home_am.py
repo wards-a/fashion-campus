@@ -8,7 +8,10 @@ class CategoryImage(fields.Raw):
     __schema_type__ = "string"
 
     def format(self, value):
-        return url_for("api.image", image_extension=value)
+        if value:
+            return url_for("api.image", image_extension=value)
+        else:
+            return url_for("api.image", image_extension="default.jpg")
 
 class HomeApiModel:
     api = Namespace("home")
