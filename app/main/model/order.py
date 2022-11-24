@@ -1,14 +1,9 @@
-import enum
-
 from uuid import uuid4
 from sqlalchemy.dialects.postgresql import UUID
 
 from app.main import db
+from app.main.model.enum_model import ShippingMethod
 
-
-class ShippingMethod(enum.Enum):
-    SAME_DAY = "same day"
-    NEXT_DAY = "next day"
 
 class Order(db.Model):
     __tablename__ = "order"

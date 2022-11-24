@@ -1,17 +1,10 @@
-import enum
 from uuid import uuid4
 
 from sqlalchemy.dialects.postgresql import UUID
 
 from app.main import db
+from app.main.model.enum_model import ProductCondition, Deleted
 
-class ProductCondition(enum.Enum):
-    NEW = "new"
-    USED = "used"
-
-class IsDelete(enum.Enum):
-    NO = "0"
-    YES = "1"
 
 class Product(db.Model):
     __tablename__ = "product"
@@ -31,10 +24,10 @@ class Product(db.Model):
         db.Enum(ProductCondition, values_callable=lambda obj: [e.value for e in obj]),
         nullable=False
     )
-    is_deleted = db.Column(
-        db.Enum(IsDelete, values_callable=lambda obj: [e.value for e in obj]),
+    deleted = db.Column(
+        db.Enum(Deleted, values_callable=lambda obj: [e.value for e in obj]),
         nullable=False,
-        server_default=str(IsDelete.NO.value)
+        server_default=str(Deleted.NO.value)
     )
     created_at = db.Column(db.DateTime(timezone=True), nullable=False, server_default=db.func.now())
     updated_at = db.Column(db.DateTime(timezone=True), onupdate=db.func.now())

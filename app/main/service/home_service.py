@@ -24,8 +24,11 @@ def get_home_categories():
 
     for e in category:
         product = [i for i in products if i.category_id==e.id]
-        setattr(e, 'images', product[0].images)
-        
+        if product:
+            setattr(e, 'images', product[0].images)
+        else:
+            setattr(e, 'images', '')
+
     return category
 
 def get_banner():
