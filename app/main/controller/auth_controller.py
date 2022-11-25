@@ -31,18 +31,18 @@ class SignUpController(Resource):
         password = body.get('password')
         
         if len(password) < 8: # check if password is less than 8 characters
-            return {"error": "Password must contain at least 8 characters"}, 400
+            return {"message": "Password must contain at least 8 characters", "error": "Password must contain at least 8 characters"}, 200
         elif re.search('[a-z]',password) is None: # check if password doesn't contain any lowercase letters
-            return {"error": "Password must contain a lowercase letter"}, 400
+            return {"message": "Password must contain a lowercase letter", "error": "Password must contain a lowercase letter"}, 200
         elif re.search('[A-Z]',password) is None: # check if password doesn't contain any uppercase letters
-            return {"error": "Password must contain an uppercase letter"}, 400
+            return {"message": "Password must contain an uppercase letter", "error": "Password must contain an uppercase letter"}, 200
         elif re.search('[0-9]',password) is None: # check if password doesn't contain any numbers
-            return {"error": "Password must contain a number"}, 400
+            return {"message": "Password must contain a number", "error": "Password must contain a number"}, 200
         
         # check existing email
         user = get_user_by_email(email)
         if user:
-            return {"error": f"User {email} already exists"}, 409
+            return {"message": f"User {email} already exists", "error": f"User {email} already exists"}, 200
         
         # if everything is valid
         return save_new_user(body)

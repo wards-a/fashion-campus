@@ -14,7 +14,7 @@ def get_shipping_price(id):
         cart = get_cart(id)
         # check cart is empty
         if not cart.data:
-            return {"code": 400, "message": "Don't have a cart", "data": []}, 400
+            return {"status": True, "message": "Don't have a cart", "data": []}, 200
         
         # calculate total price
         total_price = sum([float(detail.quantity * detail.product.price) for detail in cart.details])
@@ -27,6 +27,6 @@ def get_shipping_price(id):
         next_day_price = (20*total_price)/100 if total_price < 300 else (25*total_price)/100
         shipping_method[1]["price"] = int(next_day_price)
         
-        return {"code": 200, "message": "Success", "data": shipping_method}, 200
+        return {"status": True, "message": "Success", "data": shipping_method}, 200
     except Exception as e:
-        return {"code": 500, "message": str(e), "data": []}, 500
+        return {"status": False, "message": str(e), "data": []}, 500
