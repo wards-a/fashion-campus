@@ -1,4 +1,4 @@
-import re, copy, requests, base64, os
+import copy, requests, os, jwt
 
 from flask_restx import abort
 
@@ -6,11 +6,27 @@ from app.main import db
 from app.main.model.product import Product
 from app.main.model.product_image import ProductImage
 from app.main.model.category import Category
+from app.main.service.auth_service import get_user_by_id
 from app.main.utils.image_helper import generate_filename, b64str_to_byte, allowed_mimetype
 from app.main.utils.celery_tasks import upload_to_gcs, remove_from_gcs
 
 ########### GET PRODUCT LIST ###########
-def get_product_list(data):
+def get_product_list(data, headers):
+    if "Authentication" in headers and headers["Authentication"]:
+        user = jwt.decode(headers["Authentication"], os.environ.get('SECRET_KEY'), algorithms=["HS256"])
+        current_user = get_user_by_id(user['id'])
+        if current_user and current_user.type.value == "seller":
+            result = db.session.execute(db.select(Product)).all()
+            products_list = [e[0] for e in result]
+            response_body = {"data": products_list, "total_rows": len(products_list)}
+        else :
+            response_body = _product_list(data)
+    else:
+        response_body =  _product_list(data)
+    
+    return response_body
+
+def _product_list(data):
     # order / sort by price
     sort_price = None
     if 'sort_by' in data:
@@ -38,29 +54,24 @@ def get_product_list(data):
         filters += (Product.name.like('%'+str(data['product_name'])+'%'), )
     # query; get product list
     try:
-        if 'page' in data and 'page_size' in data:
-            result = db.paginate(
-                db.select(Product)
-                    .where(Product.is_deleted == "0")
-                    .filter(*filters)
-                    .order_by(sort_price),
-                page=int(data['page']),
-                per_page=int(data['page_size'])
-            )
-            response_body = {"data": result.items, "total_rows": result.total}
-            if not result.items:
-                response_body.update({'success': True, 'message': 'No items available'})
-        else:
-            result = db.session.execute(db.select(Product)).all()
-            products_list = [e[0] for e in result]
-            response_body = {"data": products_list, "total_rows": len(products_list)}
+        result = db.paginate(
+            db.select(Product)
+                .where(Product.is_deleted == "0")
+                .filter(*filters)
+                .order_by(sort_price),
+            page=int(data['page']),
+            per_page=int(data['page_size'])
+        )
+        response_body = {"data": result.items, "total_rows": result.total}
+        if not result.items:
+            response_body.update({'success': True, 'message': 'No items available'})
     except ValueError as e:
         abort(400, 'Page and page size must be numeric')
     except db.exc.DataError as e:
         abort(500, "Something went wrong", error=str(e.orig))
-    # formatting for response marshalling
     
     return response_body
+
 
 ########### GET PRODUCT DETAIL ###########
 def get_product_detail(product_id):
@@ -203,12 +214,11 @@ def _upload_images(data):
     name = secure_name(data['product_name'])
     images = list()
     no = 1
-    
     if 'last_image' in data and data['last_image']:
         last_section = data['last_image'].split("-")[-1]
         last_section = last_section.split(".")[0]
-        no = int(last_section) if last_section.isdigit() else no
-    
+        no = int(last_section)+1 if last_section.isdigit() else no
+
     for e in data['images']:
         image = dict()
         ### validation ###

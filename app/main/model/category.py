@@ -2,6 +2,7 @@ from uuid import uuid4
 from sqlalchemy.dialects.postgresql import UUID
 
 from app.main import db
+from app.main.model.enum_model import Deleted
 
 
 class Category(db.Model):
@@ -13,6 +14,11 @@ class Category(db.Model):
         default=uuid4
     )
     name = db.Column(db.String, nullable=False)
+    deleted = db.Column(
+        db.Enum(Deleted, values_callable=lambda obj: [e.value for e in obj]),
+        nullable=False,
+        server_default=str(Deleted.NO.value)
+    )
     created_at = db.Column(db.DateTime(timezone=True), nullable=False, server_default=db.func.now())
     updated_at = db.Column(db.DateTime(timezone=True), onupdate=db.func.now())
     product = db.relationship('Product', back_populates="category")

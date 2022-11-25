@@ -35,8 +35,9 @@ class ProductsController(Resource):
     @products_ns.expect(product_list_model)
     @products_ns.marshal_with(product_list_response_m)
     def get(self):
+        headers = request.headers
         params = request.args
-        return get_product_list(params)
+        return get_product_list(params, headers=headers)
 
     @products_ns.expect(product_post_model)
     @token_required
