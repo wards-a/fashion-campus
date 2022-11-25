@@ -51,7 +51,7 @@ class UserBalanceController(Resource):
     
     @user_ns.expect(user_balance_post_model)
     @token_required
-    def put(user, self):
+    def post(user, self):
         body = request.json
         # validate_payload(instance=body, schema=user_balance_post_schema)
         return top_up_balance(user.id, body)
