@@ -6,6 +6,7 @@ from app.main.model.order_detail import OrderDetail
 def get_home_categories():
     category = db.session.execute(
         db.select(Category)
+        .where(Category.deleted == "0")
         .order_by(Category.created_at.desc())
         .limit(4)
         .options(db.noload(Category.product))
@@ -32,16 +33,24 @@ def get_home_categories():
     return category
 
 def get_banner():
-    latest = db.session.execute(db.select(Product).order_by(Product.created_at.desc())).first()
+    latest = db.session.execute(
+        db.select(Product)
+        .join(Category)
+        .filter(db.and_(Product.deleted == "0", Category.deleted == "0"))
+        .order_by(Product.created_at.desc())
+    ).first()
     best_seller = db.session.execute(
         db.select(Product, db.func.count(OrderDetail.product_id).label("best_seller"))
+        .where(Product.deleted == "0")
         .join(Product)
         .order_by(db.desc("best_seller"))
         .group_by(Product.id)
     ).first()
 
     banner = list()
-    banner.append(latest[0])
-    banner.append(best_seller[0])
+    if latest:
+        banner.append(latest[0])
+    if best_seller:
+        banner.append(best_seller[0])
 
     return banner

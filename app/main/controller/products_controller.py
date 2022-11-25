@@ -64,12 +64,9 @@ class ProductController(Resource):
         return get_product_detail(product_id)
 
     @token_required
-    def delete(self, product_id):
-        try:
-            uuid.UUID(product_id)
-            return mark_as_deleted(product_id)
-        except ValueError:
-            abort(400, "Invalid product id")
+    @admin_level
+    def delete(user, self, product_id):
+        return mark_as_deleted(product_id)
 
 @products_ns.route("/search_image")
 class SearchImageController(Resource):
