@@ -36,6 +36,8 @@ def _product_list(data):
             sort_price = db.desc(Product.price)
 
     filters = tuple()
+    # only available product and category
+    filters += (db.and_(Product.deleted=="0", Category.deleted=="0"), )
     # filter by category
     if 'category' in data:
         category = data['category'].split(',')
@@ -48,7 +50,8 @@ def _product_list(data):
         filters += (Product.price.between(start, end), )
     # filter by conditon new/used
     if 'kondisi' in data: # key: condition
-        filters += (Product.condition == data['kondisi'], )
+        condition = data['kondisi'].split(',')
+        filters += (Product.condition.in_(condition), )
     # filter by similar names
     if 'product_name' in data:
         filters += (Product.name.like('%'+str(data['product_name'])+'%'), )
@@ -56,7 +59,7 @@ def _product_list(data):
     try:
         result = db.paginate(
             db.select(Product)
-                .where(Product.is_deleted == "0")
+                .join(Category)
                 .filter(*filters)
                 .order_by(sort_price),
             page=int(data['page']),
@@ -64,7 +67,8 @@ def _product_list(data):
         )
         response_body = {"data": result.items, "total_rows": result.total}
         if not result.items:
-            response_body.update({'success': True, 'message': 'No items available'})
+            response_body.update({'success': False, 'message': 'No items available'})
+            return response_body, 404
     except ValueError as e:
         abort(400, 'Page and page size must be numeric')
     except db.exc.DataError as e:
@@ -169,10 +173,10 @@ def save_product_changes(data):
 def mark_as_deleted(product_id):
     try:
         product = db.session.execute(db.select(Product).filter_by(id=product_id)).scalar_one()
-    except db.exc.NoResultFound:
+    except db.exc.DataError:
         abort(404, "Item not available")
     
-    product.is_deleted = "1"
+    product.deleted = "1"
     db.session.commit()
 
     return {"message": "Product deleted"}, 200
@@ -273,14 +277,18 @@ def _validation(data: dict) -> dict:
     """
     result_data = copy.deepcopy(data)
     ########### Product unique based on name, category, and condition ###########
-    product_exists = db.session.execute(db.select(Product).filter_by(name=result_data['product_name'])).first()
+    product_exists = db.session.execute(
+        db.select(Product)
+        .filter(db.and_(Product.name==result_data['product_name'], Product.deleted=="0"))
+    ).all()
     if product_exists:
-        if str(product_exists[0].category_id) == result_data['category'] \
-        and product_exists[0].condition.value == result_data['condition'].lower():
-            if 'product_id' not in result_data:
-                abort(400, 'There is already a product with that name, category, and condition')
-            if 'product_id' in result_data and result_data['product_id'] != str(product_exists[0].id):
-                abort(400, 'There is already a product with that name, category, and condition')
+        for product in product_exists:
+            if str(product[0].category_id) == result_data['category'] \
+            and product[0].condition.value == result_data['condition'].lower():
+                if 'product_id' not in result_data:
+                    abort(400, 'There is already a product with that name, category, and condition')
+                if 'product_id' in result_data and result_data['product_id'] != str(product[0].id):
+                    abort(400, 'There is already a product with that name, category, and condition')
 
     ### Rename properties to match database model ###
     result_data.update({'name': result_data.pop('product_name')})
