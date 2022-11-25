@@ -13,6 +13,6 @@ def get_total_sales():
             total_sales += data.shipping_price
             total_sales += int(sum([float(detail.quantity * detail.price) for detail in data.details]))
         
-        return {"code": 200, "message": "Success", "data": [{"total": int(total_sales)}]}, 200
+        return {"status": True, "message": "Success", "data": [{"total": int(total_sales)}]}, 200
     except IndexError:
-        return {"code": 200, "message": "Index out of range", "data": [{"total": total_sales}]}, 200
+        return {"status": True, "message": "Index out of range", "data": [{"total": total_sales}]}, 200
