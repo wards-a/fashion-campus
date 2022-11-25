@@ -43,7 +43,7 @@ class Product(db.Model):
             self.size,
             self.price,
             self.condition,
-            self.is_deleted,
+            self.deleted,
             self.created_at,
             self.updated_at,
             self.category_id

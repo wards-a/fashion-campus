@@ -9,10 +9,14 @@ def get_total_sales():
     try:
         order = db.session.execute(db.select(Order)).all()
         # calculate total sales
-        for data in order[0]:
-            total_sales += data.shipping_price
-            total_sales += int(sum([float(detail.quantity * detail.price) for detail in data.details]))
+        if order:
+            for data in order[0]:
+                total_sales += data.shipping_price
+                total_sales += int(sum([float(detail.quantity * detail.price) for detail in data.details]))
         
-        return {"code": 200, "message": "Success", "data": [{"total": int(total_sales)}]}, 200
+        data = {
+            "total": int(total_sales)
+        }
+        return {"status": True, "message": "Success", "data": data}, 200
     except IndexError:
-        return {"code": 200, "message": "Index out of range", "data": [{"total": total_sales}]}, 200
+        return {"status": True, "message": "Index out of range", "data": []}, 200
