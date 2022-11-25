@@ -9,18 +9,19 @@ def get_cart(id):
     try:
         cart = db.session.execute(db.select(Cart).filter_by(user_id=id)).scalar()
         data = []
-        for i in cart.details:
-            temp = {
-                "id": str(i.id),
-                "details": {
-                    "quantity": i.quantity,
-                    "size": i.size
-                },
-                "price": int(i.product.price),
-                "image": i.product.images[0].image,
-                "name": i.product.name
-            }
-            data.append(temp)
+        if cart:
+            for i in cart.details:
+                temp = {
+                    "id": str(i.id),
+                    "details": {
+                        "quantity": i.quantity,
+                        "size": i.size
+                    },
+                    "price": int(i.product.price),
+                    "image": i.product.images[0].image if i.product.images else None,
+                    "name": i.product.name
+                }
+                data.append(temp)
         return {"status": True, "message": "Success", "data": data}, 200
     except Exception as e:
         return {"status": False, "message": str(e), "data": []}, 500
@@ -58,7 +59,7 @@ def add_cart(id, data):
             db.session.execute(db.insert(CartDetail).values(cart_detail_data))
             db.session.commit()
         
-        return {"status": True, "message": "Item added to cart"}, 200
+        return {"status": True, "message": "success added item to cart"}, 200
     except Exception as e:
         return {"status": False, "message": str(e)}, 500
 
