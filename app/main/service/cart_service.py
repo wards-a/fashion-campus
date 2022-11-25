@@ -18,7 +18,7 @@ def get_cart(id):
                         "size": i.size
                     },
                     "price": int(i.product.price),
-                    "image": i.product.images[0].image,
+                    "image": i.product.images[0].image if i.product.images else None,
                     "name": i.product.name
                 }
                 data.append(temp)
@@ -59,7 +59,7 @@ def add_cart(id, data):
             db.session.execute(db.insert(CartDetail).values(cart_detail_data))
             db.session.commit()
         
-        return {"status": True, "message": "Item added to cart"}, 200
+        return {"status": True, "message": "success added item to cart"}, 200
     except Exception as e:
         return {"status": False, "message": str(e)}, 500
 

@@ -4,16 +4,13 @@ from app.main import db
 from app.main.model.cart import Cart
 from app.main.model.user import User
 from app.main.model.shipping_address import ShippingAddress
-from app.main.service.cart_service import (
-    get_cart
-)
 
 
 def get_shipping_price(id):
     try:
-        cart = get_cart(id)
+        cart = db.session.execute(db.select(Cart).filter_by(user_id=id)).scalar()
         # check cart is empty
-        if not cart.data:
+        if not cart:
             return {"status": True, "message": "Don't have a cart", "data": []}, 200
         
         # calculate total price
