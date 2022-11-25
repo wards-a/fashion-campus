@@ -23,9 +23,13 @@ class UsersController(Resource):
     @token_required
     def get(user, self):
         return {
-            "name": user.name,
-            "email": user.email,
-            "phone_number": user.phone_number
+            "success": True,
+            "message": "Success",
+            "data": {
+                "name": user.name,
+                "email": user.email,
+                "phone_number": user.phone_number
+            }
         }
 
 @user_ns.route("/shipping_address")

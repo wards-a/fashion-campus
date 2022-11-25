@@ -8,16 +8,16 @@ from app.main.model.shipping_address import ShippingAddress
 def get_user_balance(id):
     try:
         balance = db.session.execute(db.select(User.balance).filter_by(id=id)).scalar()
-        return {"code": 200, "message": "Success", "data": {"balance": int(balance)}}, 200
+        return {"status": True, "message": "Success", "data": {"balance": int(balance)}}, 200
     except Exception as e:
-        return {"code": 500, "message": str(e), "data": {}}, 500
+        return {"status": False, "message": str(e), "data": {}}, 500
 
 def get_user_shipping_address(id):
     result = db.session.execute(db.select(ShippingAddress).filter_by(user_id=id)).scalar()
     if not result:
         abort(404, "Shipping address not available")
     
-    return {"code": 200, "message": "Success", "data": {
+    return {"status": True, "message": "Success", "data": {
         "id": str(result.id),
         "name": result.name,
         "phone_number": result.phone_number,
@@ -45,9 +45,9 @@ def change_shipping_address(id, data):
         
         db.session.commit()
         
-        return {"code": 200, "message": "Change shipping address success"}, 200
+        return {"status": True, "message": "Change shipping address success"}, 200
     except Exception as e:
-        return {"code": 500, "message": str(e)}, 500
+        return {"status": False, "message": str(e)}, 500
 
 def top_up_balance(id, data):
     try:
@@ -62,8 +62,8 @@ def top_up_balance(id, data):
             
             balance = db.session.execute(db.select(User.balance).filter_by(id=id)).scalar()
             
-            return {"code": 200, "message": "Top Up balance success", "data": {"balance": int(balance)}}, 200
+            return {"status": True, "message": "Top Up balance success", "data": {"balance": int(balance)}}, 200
         
         abort(400, 'Invalid amount')
     except Exception as e:
-        return {"code": 500, "message": str(e)}, 500
+        return {"status": False, "message": str(e)}, 500
