@@ -4,6 +4,7 @@ from flask import abort
 
 from app.main import db
 from app.main.model.category import Category
+from app.main.model.product import Product
 
 def get_all_category():
     result = db.session.execute(db.select(Category)).all()
@@ -48,8 +49,7 @@ def _validation(data: dict, category_id = None) -> dict:
     result_data.update({'title': result_data.pop('category_name')})
     return result_data
 
-def save_category_changes(data, category_id):
-    result_data = _validation(data, category_id)
+def save_category_changes(data, category_id):    
     
     try:
         db.session.execute(
@@ -65,3 +65,20 @@ def save_category_changes(data, category_id):
     db.session.commit()
 
     return {"message": "Category updated"}, 200
+
+def mark_as_deleted(category_id):
+    try: 
+        db.session.execute(db.select(Category).filter_by(id=category_id)).scalar_one()
+
+    except db.exc.DataError:
+        abort(404, "Category not available")
+
+    product = db.session.execute(db.select(Product).filter_by(category_id=category_id)).scalar()
+    if not product:
+        db.session.execute(db.updaate(Product).where(Product.category_id == category_id)).values({"category_id": None})
+        db.session.commit()
+    
+    db.session.execute(db.delete(Category).where(Category.id == category_id))
+    db.session.commit()
+
+    return {"message": "Category deleted"}, 200
