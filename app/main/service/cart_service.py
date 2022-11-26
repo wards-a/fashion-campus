@@ -78,3 +78,22 @@ def delete_cart(id, cart_id):
         return {"status": True, "message": "Cart deleted"}, 200
     except Exception as e:
         return {"status": False, "message": str(e)}, 500
+
+def delete_cart_by_product(product_id):
+    try:
+        cart_detail = db.session.execute(db.select(CartDetail).filter_by(product_id=product_id)).all()
+        if cart_detail:
+            cart_id_list = []
+            for i in cart_detail:
+                cart_id_list.append(i[0].cart_id)
+            
+            db.session.execute(db.delete(CartDetail).where(CartDetail.product_id == product_id))
+            db.session.commit()
+            for cart_id in cart_id_list:
+                cart = db.session.execute(db.select(Cart).filter_by(id=cart_id)).scalar()
+                if not cart.details:
+                    db.session.execute(db.delete(Cart).where(Cart.id == cart_id))
+                    db.session.commit()
+        return {"status": True, "message": "Success"}, 200
+    except Exception as e:
+        return {"status": False, "message": str(e)}, 500
