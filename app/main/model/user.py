@@ -24,11 +24,11 @@ class User(db.Model):
     phone_number = db.Column(db.String, nullable=False)
     password = db.Column(db.String, nullable=False)
     balance = db.Column(db.Numeric(12, 2), nullable=False)
-    is_admin = db.Column(
-        db.Enum(Admin, values_callable=lambda obj: [e.value for e in obj]),
-        nullable=False,
-        server_default=str(Admin.NO.value)
-    )
+    # is_admin = db.Column(
+    #     db.Enum(Admin, values_callable=lambda obj: [e.value for e in obj]),
+    #     nullable=False,
+    #     server_default=str(Admin.NO.value)
+    # )
     created_at = db.Column(db.DateTime(timezone=True), nullable=False, server_default=db.func.now())
     updated_at = db.Column(db.DateTime(timezone=True), onupdate=db.func.now())
     address = db.relationship("ShippingAddress", backref="user")
