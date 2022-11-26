@@ -1,7 +1,8 @@
-from flask import abort
+from flask_restx import abort
 
 from app.main import db
 from app.main.model.user import User
+from app.main.model.order import Order
 from app.main.model.shipping_address import ShippingAddress
 
 
@@ -67,3 +68,8 @@ def top_up_balance(id, data):
         abort(400, 'Invalid amount')
     except Exception as e:
         return {"status": False, "message": str(e)}, 500
+
+def get_user_order(user_id):
+    result = db.session.execute(db.select(Order).where(Order.user_id==user_id)).all()
+    order = [e[0] for e in result]
+    return order

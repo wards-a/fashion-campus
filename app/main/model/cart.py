@@ -19,7 +19,7 @@ class Cart(db.Model):
         server_default=db.func.now()
     )
     user = db.relationship("User", backref="user")
-    details = db.relationship("CartDetail", backref="cart")
+    details = db.relationship("CartDetail", backref="cart", cascade="all, delete")
 
     def __repr__(self) -> str:
         return "<Cart(id={}, users.username={}, created_at={}, details={})>".format(

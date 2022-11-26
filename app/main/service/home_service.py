@@ -39,18 +39,18 @@ def get_banner():
         .filter(db.and_(Product.deleted == "0", Category.deleted == "0"))
         .order_by(Product.created_at.desc())
     ).first()
-    best_seller = db.session.execute(
-        db.select(Product, db.func.count(OrderDetail.product_id).label("best_seller"))
+    most_sold = db.session.execute(
+        db.select(Product, db.func.count(OrderDetail.product_id).label("most_sold"))
         .where(Product.deleted == "0")
         .join(Product)
-        .order_by(db.desc("best_seller"))
+        .order_by(db.desc("most_sold"))
         .group_by(Product.id)
     ).first()
 
     banner = list()
     if latest:
         banner.append(latest[0])
-    if best_seller:
-        banner.append(best_seller[0])
+    if most_sold:
+        banner.append(most_sold[0])
 
     return banner

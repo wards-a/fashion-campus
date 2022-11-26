@@ -96,7 +96,7 @@ class ProductsApiModel:
         "size": fields.Raw,
         "product_detail": fields.Raw(attribute="description"),
         "price": fields.Integer,
-        "condition": fields.String,
+        "condition": fields.String(attribute="condition.value"),
         "images_url": ProductImagesList(attribute="images"),
         "category_id": fields.String,
         "category_name": fields.String(attribute="category.name")

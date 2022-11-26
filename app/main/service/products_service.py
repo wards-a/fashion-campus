@@ -7,6 +7,7 @@ from app.main.model.product import Product
 from app.main.model.product_image import ProductImage
 from app.main.model.category import Category
 from app.main.service.auth_service import get_user_by_id
+from app.main.service.cart_service import delete_cart_by_product
 from app.main.utils.image_helper import generate_filename, b64str_to_byte, allowed_mimetype
 from app.main.utils.celery_tasks import upload_to_gcs, remove_from_gcs
 
@@ -81,7 +82,6 @@ def _product_list(data):
 def get_product_detail(product_id):
     try:
         result = db.session.execute(db.select(Product).filter_by(id=product_id)).scalar()
-        result.condition = result.condition.value
     except db.exc.DataError as e:
         abort(500, "Something went wrong", error=str(e.orig))
     if not result:
@@ -173,11 +173,13 @@ def save_product_changes(data):
 def mark_as_deleted(product_id):
     try:
         product = db.session.execute(db.select(Product).filter_by(id=product_id)).scalar_one()
+        product.deleted = "1"
+        db.session.commit()
     except db.exc.DataError:
+        db.session.rollback()
         abort(404, "Item not available")
     
-    product.deleted = "1"
-    db.session.commit()
+    delete_cart_by_product(product.id)
 
     return {"message": "Product deleted"}, 200
 
