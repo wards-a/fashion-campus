@@ -1,7 +1,7 @@
 import enum
 
 class ShippingMethod(enum.Enum):
-    SAME_DAY = "same day"
+    REGULAR = "regular"
     NEXT_DAY = "next day"
 
 class ProductCondition(enum.Enum):
