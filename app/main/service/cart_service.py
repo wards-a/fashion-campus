@@ -2,6 +2,7 @@ from flask import abort
 
 from app.main import db
 from app.main.model.cart import Cart
+from app.main.model.product import Product
 from app.main.model.cart_detail import CartDetail
 
 
@@ -27,6 +28,10 @@ def get_cart(id):
         return {"status": False, "message": str(e), "data": []}, 500
 
 def add_cart(id, data):
+    product_deleted = db.session.execute(db.select(Product.deleted).where(Product.id==data['id'])).scalar()
+    if product_deleted.value == "1":
+        return {"status": False, "message": "Product has been removed"}, 500
+
     try:
         cart = db.session.execute(db.select(Cart).filter_by(user_id=id)).scalar()
         if not cart:

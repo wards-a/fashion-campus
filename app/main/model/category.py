@@ -21,7 +21,7 @@ class Category(db.Model):
     )
     created_at = db.Column(db.DateTime(timezone=True), nullable=False, server_default=db.func.now())
     updated_at = db.Column(db.DateTime(timezone=True), onupdate=db.func.now())
-    product = db.relationship('Product', back_populates="category")
+    product = db.relationship('Product', back_populates="category", lazy="noload")
 
     def __repr__(self) -> str:
         return "<Category(id={}, name={}, created_at={}, updated_at={}, product={})>".format(

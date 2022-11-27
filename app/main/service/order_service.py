@@ -2,17 +2,26 @@ from flask_restx import abort
 
 from app.main import db
 from app.main.model.cart import Cart
+from app.main.model.cart_detail import CartDetail
+from app.main.model.product import Product
 from app.main.model.order import Order
 from app.main.model.order_detail import OrderDetail
 from app.main.model.user import User
 from app.main.model.shipping_address import ShippingAddress
+
 
 def create_order(data, user_id):
     shipping_method = data['shipping_method']
     address_name = data['shipping_address']['name']
 
     address_id = _get_address_id(user_id, address_name)
-    cart = db.session.execute(db.select(Cart).filter_by(user_id=user_id)).scalar()
+    cart = db.session.execute(
+        db.select(Cart)
+        .filter_by(user_id=user_id)
+        .options(
+            db.noload(Cart.details, CartDetail.product, Product.images)
+        )
+    ).scalar()
     subtotal = sum([float(detail.quantity * detail.product.price) for detail in cart.details])
     shipping_price = _calculate_shipping_price(shipping_method, subtotal)
     total_price = subtotal + shipping_price
@@ -38,7 +47,7 @@ def create_order(data, user_id):
                     product_id = detail.product_id,
                     size = detail.size,
                     quantity = detail.quantity,
-                    price = (detail.quantity * detail.product.price)
+                    price = detail.product.price
                 )
             )
         db.session.add_all(order_details)
@@ -57,7 +66,23 @@ def create_order(data, user_id):
 
     db.session.commit()
     return {"message": "Order success"}
+
+
+def get_all_orders():
+    result = db.session.execute(
+        db.select(Order)
+        .options(db.joinedload(Order.user))
+    ).scalars()
     
+    orders = list()
+    for e in result:
+        total_price = e.shipping_price
+        for d in e.details:
+            total_price += d.quantity*d.price
+        setattr(e, "total_price", total_price)
+        orders.append(e)
+
+    return orders
 
 def _get_address_id(user_id, address_name):
     address_id = db.session.execute(

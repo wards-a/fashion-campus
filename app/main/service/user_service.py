@@ -70,6 +70,5 @@ def top_up_balance(id, data):
         return {"status": False, "message": str(e)}, 500
 
 def get_user_order(user_id):
-    result = db.session.execute(db.select(Order).where(Order.user_id==user_id)).all()
-    order = [e[0] for e in result]
-    return order
+    result = db.session.execute(db.select(Order).where(Order.user_id==user_id)).scalars().all()
+    return result

@@ -3,8 +3,8 @@ from flask_restx import Resource
 
 from app.main.api_model.order_am import OrderApiModel
 from app.main.utils.token import token_required
-from app.main.utils.custom_decorator import validate_payload
-from app.main.service.order_service import create_order
+from app.main.utils.custom_decorator import validate_payload, admin_level
+from app.main.service.order_service import create_order, get_all_orders
 
 
 order_ns = OrderApiModel.order
@@ -12,6 +12,7 @@ orders_ns = OrderApiModel.orders
 
 order_post_schema = OrderApiModel.order_post_schema
 order_post_model = OrderApiModel.order_post_model
+order_list_model = OrderApiModel.order_list_model
 
 @order_ns.route("")
 class OrderController(Resource):
@@ -24,5 +25,8 @@ class OrderController(Resource):
 
 @orders_ns.route("")
 class OrdersController(Resource):
-    def get(self):
-        pass
+    @orders_ns.marshal_list_with(order_list_model, envelope="data")
+    @token_required
+    @admin_level
+    def get(user, self):
+        return get_all_orders()

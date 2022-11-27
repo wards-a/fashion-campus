@@ -1,7 +1,11 @@
-from flask_restx import Namespace
+from flask_restx import Namespace, fields
 
 from app.main.model.enum_model import ShippingMethod
 
+
+class TotalPrice(fields.Raw):
+    def format(self, value):
+        return int(sum(e.quantity*e.price for e in value))
 
 class OrderApiModel:
     order = Namespace("order")
@@ -33,3 +37,12 @@ class OrderApiModel:
     }
 
     order_post_model = order.schema_model("Order", order_post_schema)
+
+    order_list_model = orders.model("OrdersList", {
+        "id": fields.String(attribute="id"),
+        "user_name": fields.String(attribute="user.name"),
+        "created_at": fields.DateTime(dt_format="rfc822"),
+        "user_id": fields.String(attribute="user.id"),
+        "user_email": fields.String(attribute="user.email"),
+        "total": fields.Integer(attribute="total_price")
+    })
