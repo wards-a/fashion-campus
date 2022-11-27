@@ -15,7 +15,3 @@ class Deleted(enum.Enum):
 class Role(enum.Enum):
     SELLER = "seller"
     BUYER = "buyer"
-
-class Admin(enum.Enum):
-    NO = '0'
-    YES = '1'
