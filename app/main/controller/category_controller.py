@@ -28,8 +28,9 @@ class CategoriesController(Resource):
     @admin_level
     @validate_payload(category_post_schema)
     def post(user, self):
-        body = request.json
-        return create_category(body)
+        data = request.get_data()
+        data = json.loads(data.decode('utf-8'))
+        return create_category(data)
 
 @category_ns.route("/<category_id>")
 class CategoryController(Resource):
