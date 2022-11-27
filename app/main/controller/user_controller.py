@@ -10,13 +10,15 @@ from app.main.service.user_service import (
     get_user_balance,
     get_user_shipping_address,
     change_shipping_address,
-    top_up_balance
+    top_up_balance,
+    get_user_order
 )
 
 
 user_ns = UserApiModel.api
 user_balance_post_schema = UserApiModel.user_balance_post_schema
 user_balance_post_model = UserApiModel.user_balance_post_model
+user_order_model = UserApiModel.order
 
 @user_ns.route("")
 class UsersController(Resource):
@@ -55,3 +57,10 @@ class UserBalanceController(Resource):
         body = request.json
         # validate_payload(instance=body, schema=user_balance_post_schema)
         return top_up_balance(user.id, body)
+
+@user_ns.route("/order")
+class UserOrderController(Resource):
+    @user_ns.marshal_list_with(user_order_model, envelope="data")
+    @token_required
+    def get(user, self):
+        return get_user_order(user.id)
