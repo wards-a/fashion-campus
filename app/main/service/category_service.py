@@ -4,7 +4,6 @@ from flask import abort
 
 from app.main import db
 from app.main.model.category import Category
-from app.main.model.product import Product
 
 def get_all_category():
     result = db.session.execute(db.select(Category).where(Category.deleted == "0")).all()
@@ -67,18 +66,15 @@ def save_category_changes(data, category_id):
     return {"message": "Category updated"}, 200
 
 def mark_as_deleted(category_id):
-    try: 
-        db.session.execute(db.select(Category).filter_by(id=category_id)).scalar_one()
-
-    except db.exc.DataError:
-        abort(404, "Category not available")
-
-    product = db.session.execute(db.select(Product).filter_by(category_id=category_id)).scalar()
-    if product:
-        db.session.execute(db.update(Product).where(Product.category_id == category_id)).values({"category_id": None})
+    try:
+        category = db.session.execute(
+            db.select(Category)
+            .filter_by(id=category_id)
+        ).scalar_one()
+        category.deleted = "1"
         db.session.commit()
-    
-    db.session.execute(db.delete(Category).where(Category.id == category_id))
-    db.session.commit()
+    except db.exc.DataError:
+        db.session.rollback()
+        abort(404, "Category not available")
 
     return {"message": "Category deleted"}, 200
