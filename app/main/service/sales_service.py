@@ -10,9 +10,9 @@ def get_total_sales():
         order = db.session.execute(db.select(Order)).all()
         # calculate total sales
         if order:
-            for data in order[0]:
-                total_sales += data.shipping_price
-                total_sales += int(sum([float(detail.quantity * detail.price) for detail in data.details]))
+            for data in order:
+                total_sales += data[0].shipping_price
+                total_sales += int(sum([float(detail.quantity * detail.price) for detail in data[0].details]))
         
         data = {
             "total": int(total_sales)

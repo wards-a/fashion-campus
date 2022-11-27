@@ -25,7 +25,7 @@ class Order(db.Model):
         nullable=False, 
         server_default=db.func.now()
     )
-    user = db.relationship("User", back_populates="order")
+    user = db.relationship("User", backref="order", lazy="noload")
     shipping_address = db.relationship("ShippingAddress", backref="order")
     details = db.relationship("OrderDetail", backref="order")
 

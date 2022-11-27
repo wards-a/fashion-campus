@@ -7,23 +7,19 @@ from app.main.model.product import Product
 from app.main.model.product_image import ProductImage
 from app.main.model.category import Category
 from app.main.service.auth_service import get_user_by_id
+from app.main.service.cart_service import delete_cart_by_product
 from app.main.utils.image_helper import generate_filename, b64str_to_byte, allowed_mimetype
 from app.main.utils.celery_tasks import upload_to_gcs, remove_from_gcs
 
 ########### GET PRODUCT LIST ###########
 def get_product_list(data, headers):
-    if "Authentication" in headers and headers["Authentication"]:
-        user = jwt.decode(headers["Authentication"], os.environ.get('SECRET_KEY'), algorithms=["HS256"])
-        current_user = get_user_by_id(user['id'])
-        if current_user and current_user.type.value == "seller":
-            result = db.session.execute(db.select(Product)).all()
-            products_list = [e[0] for e in result]
-            response_body = {"data": products_list, "total_rows": len(products_list)}
-        else :
-            response_body = _product_list(data)
+    current_user = _get_user_identity(headers)
+    if current_user and current_user.type.value == "seller":
+        products_list = db.session.execute(db.select(Product)).scalars().all()
+        response_body = {"data": products_list, "total_rows": len(products_list)}
     else:
-        response_body =  _product_list(data)
-    
+        response_body = _product_list(data)
+
     return response_body
 
 def _product_list(data):
@@ -42,8 +38,6 @@ def _product_list(data):
     if 'category' in data:
         category = data['category'].split(',')
         filters += (Product.category_id.in_(category), )
-    else:
-        filters += (Product.category_id.is_not(None), )
     # filter by price (lower, higher)
     if 'harga' in data: # key: price
         start, end = data['harga'].split(',')
@@ -80,8 +74,11 @@ def _product_list(data):
 ########### GET PRODUCT DETAIL ###########
 def get_product_detail(product_id):
     try:
-        result = db.session.execute(db.select(Product).filter_by(id=product_id)).scalar()
-        result.condition = result.condition.value
+        result = db.session.execute(
+            db.select(Product)
+            .filter_by(id=product_id)
+            .options(db.joinedload(Product.category))
+        ).scalar()
     except db.exc.DataError as e:
         abort(500, "Something went wrong", error=str(e.orig))
     if not result:
@@ -172,12 +169,18 @@ def save_product_changes(data):
 ########### REMOVE PRODUCT ###########
 def mark_as_deleted(product_id):
     try:
-        product = db.session.execute(db.select(Product).filter_by(id=product_id)).scalar_one()
+        product = db.session.execute(
+            db.select(Product)
+            .filter_by(id=product_id)
+            .options(db.noload(Product.images))
+        ).scalar_one()
+        product.deleted = "1"
+        db.session.commit()
     except db.exc.DataError:
+        db.session.rollback()
         abort(404, "Item not available")
     
-    product.deleted = "1"
-    db.session.commit()
+    delete_cart_by_product(product.id)
 
     return {"message": "Product deleted"}, 200
 
@@ -193,12 +196,12 @@ def search_by_image(data):
         response_text = r.text
         category = response_text[response_text.find('Detected Image: ')+1 : response_text.find('<')]
         if category.lower() == "error":
-            raise IndexError()
+            raise KeyError()
         ### get the category id based on the prediction result ###
-        result = db.session.execute(db.select(Category).filter_by(name=category)).first()
+        result = db.session.execute(db.select(Category).filter_by(name=category)).scalar()
         if not result:
             abort(404, c_not_found="Product not found")
-        response_data = {"category_id": result[0].id}
+        response_data = {"category_id": result.id}
     except KeyError:
         abort(500, "Something went wrong")
     except IndexError:
@@ -280,14 +283,18 @@ def _validation(data: dict) -> dict:
     product_exists = db.session.execute(
         db.select(Product)
         .filter(db.and_(Product.name==result_data['product_name'], Product.deleted=="0"))
-    ).all()
+        .options(
+            db.noload(Product.images),
+            db.joinedload(Product.category)
+        )
+    ).scalars()
     if product_exists:
         for product in product_exists:
-            if str(product[0].category_id) == result_data['category'] \
-            and product[0].condition.value == result_data['condition'].lower():
+            if str(product.category_id) == result_data['category'] \
+            and product.condition.value == result_data['condition'].lower():
                 if 'product_id' not in result_data:
                     abort(400, 'There is already a product with that name, category, and condition')
-                if 'product_id' in result_data and result_data['product_id'] != str(product[0].id):
+                if 'product_id' in result_data and result_data['product_id'] != str(product.id):
                     abort(400, 'There is already a product with that name, category, and condition')
 
     ### Rename properties to match database model ###
@@ -299,3 +306,11 @@ def _validation(data: dict) -> dict:
     if 'images' in result_data:
         result_data.pop('images')
     return result_data
+
+def _get_user_identity(headers):
+    if "Authentication" in headers and headers["Authentication"]:
+        user = jwt.decode(headers["Authentication"], os.environ.get('SECRET_KEY'), algorithms=["HS256"])
+        current_user = get_user_by_id(user['id'])
+        return current_user
+    else:
+        return None

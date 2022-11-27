@@ -1,7 +1,7 @@
 import enum
 
 class ShippingMethod(enum.Enum):
-    SAME_DAY = "same day"
+    REGULAR = "regular"
     NEXT_DAY = "next day"
 
 class ProductCondition(enum.Enum):
@@ -15,7 +15,3 @@ class Deleted(enum.Enum):
 class Role(enum.Enum):
     SELLER = "seller"
     BUYER = "buyer"
-
-class Admin(enum.Enum):
-    NO = '0'
-    YES = '1'

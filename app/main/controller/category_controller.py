@@ -27,21 +27,22 @@ class CategoriesController(Resource):
     @token_required
     @admin_level
     @validate_payload(category_post_schema)
-    def post(self):
-        body = request.json
-        return create_category(body)
+    def post(user, self):
+        data = request.get_data()
+        data = json.loads(data.decode('utf-8'))
+        return create_category(data)
 
 @category_ns.route("/<category_id>")
 class CategoryController(Resource):
     @token_required
     @admin_level
-    def put(self, category_id):
+    def put(user, self, category_id):
         data = request.get_data()
         data = json.loads(data.decode('utf-8'))
         return save_category_changes(data, str(category_id))
     
     @token_required
     @admin_level
-    def delete(self, category_id):
+    def delete(user, self, category_id):
         return mark_as_deleted(category_id)
     

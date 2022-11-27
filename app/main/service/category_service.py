@@ -7,7 +7,7 @@ from app.main.model.category import Category
 from app.main.model.product import Product
 
 def get_all_category():
-    result = db.session.execute(db.select(Category)).all()
+    result = db.session.execute(db.select(Category).where(Category.deleted == "0")).all()
     result = [e[0] for e in result]
     return result
 
@@ -74,8 +74,8 @@ def mark_as_deleted(category_id):
         abort(404, "Category not available")
 
     product = db.session.execute(db.select(Product).filter_by(category_id=category_id)).scalar()
-    if not product:
-        db.session.execute(db.updaate(Product).where(Product.category_id == category_id)).values({"category_id": None})
+    if product:
+        db.session.execute(db.update(Product).where(Product.category_id == category_id)).values({"category_id": None})
         db.session.commit()
     
     db.session.execute(db.delete(Category).where(Category.id == category_id))
