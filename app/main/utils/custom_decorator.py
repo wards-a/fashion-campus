@@ -11,13 +11,13 @@ def validate_payload(schema):
         @wraps(func)
         def decorated_function(*args, **kwargs):
             content_type = request.headers.get('Content-Type')
-            if 'text/plain' in content_type:
-                data = request.get_data()
-                instance = json.loads(data.decode('utf-8'))
-            if 'multipart/form-data' in content_type:
-                instance = request.form
             if 'application/json' in content_type:
                 instance = request.json
+            elif 'text/plain' in content_type:
+                data = request.get_data()
+                instance = json.loads(data.decode('utf-8'))
+            elif 'multipart/form-data' in content_type:
+                instance = request.form
             try:
                 validate(instance=instance, schema=schema)
             except exceptions.ValidationError as e:
