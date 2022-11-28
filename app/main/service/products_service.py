@@ -11,9 +11,7 @@ from app.main.service.cart_service import delete_cart_by_product
 from app.main.utils.image_helper import (
     generate_filename, 
     b64str_to_byte, 
-    allowed_mimetype,
-    upload_to_local_folder,
-    remove_from_local_folder
+    allowed_mimetype
 )
 from app.main.utils.celery_tasks import upload_to_gcs, remove_from_gcs
 
@@ -256,27 +254,15 @@ def _upload_images(data):
         images.append(image)
         no+=1
     
-    if os.environ.get('UPLOAD_STORAGE') == 'cloud':
-        for image in images:
-            upload_to_gcs.apply_async(args=[image], countdown=3)
-    elif os.environ.get('UPLOAD_STORAGE') == 'local':
-        for image in images:
-            upload_to_local_folder(image)
-    else:
-        abort(500, "Can't determine storage location")
+    for image in images:
+        upload_to_gcs.apply_async(args=[image], countdown=3)
 
     images_name = [e['filename'] for e in images]
     return images_name
 
 def _remove_images(data: list):
-    if os.environ.get('UPLOAD_STORAGE') == 'cloud':
-        for filename in data:
-            remove_from_gcs.apply_async(args=[filename], countdown=3)
-    elif os.environ.get('UPLOAD_STORAGE') == 'local':
-        for filename in data:
-            remove_from_local_folder(filename)
-    else:
-        abort(500, "Can't determine storage location")
+    for filename in data:
+        remove_from_gcs.apply_async(args=[filename], countdown=3)
     
 
 ########### Validation ###########
