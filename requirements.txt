@@ -16,7 +16,7 @@ google-cloud-storage==2.1.0
 
 # processing
 celery==5.2.7
-redis==4.3.4
+redis==4.3.5
 
 # other
 python-dotenv==0.21.0
