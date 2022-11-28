@@ -1,5 +1,4 @@
 fashion-campus/
-migrations/
 *.pyc
 __pycache__/
 .vscode
