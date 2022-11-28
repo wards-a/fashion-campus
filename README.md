@@ -18,25 +18,39 @@ Backend repository for Final Project Startup Campus
 - [redis](https://pypi.org/project/redis/) v4.3.5
 - [image-prediction](https://github.com/rizanqardafil/fashion-mnist)
 
-# Getting Started
+# How to run a Fashion-Campus locally
 
-## Prerequisites
+## Initial Setup
 
-- [ ] Docker and docker compose
+Please ensure that the tools listed below are installed.
 
-## Installation
+- [ ] Code editor for example [Visual Studio Code](https://code.visualstudio.com/)
+- [ ] Version control [Git](https://git-scm.com/)
+- [ ] [Docker](https://www.docker.com/) and [docker compose](https://docs.docker.com/compose/). In this project, we're using Docker Compose v2.12.0, see for [installation](https://docs.docker.com/compose/install/linux/#install-the-plugin-manually).
 
-- Clone this repository
+## Clone repository
+
+Run the following command in your terminal.
 
 ```
 git clone https://gitlab.com/andrifanky/fashion-campus.git
 ```
 
-## Usage
+## Change environment
 
-With docker
+After cloning the fashion-campus repository, launch your code editor and navigate to the fashion-campus folder. Before running fashion-campus on your local machine, modify the following settings.
+
+Open the `.env` file, then modify it
+- CELERY_BROKER_URL=redis://`fashion-campus-redis_worker-1`:6379/0
+- IMAGE_PREDICTION_URL=http://`127.0.0.1`:5050
+
+## Run Fashion-Campus
+
+Then open the code editor's terminal and execute the following command.
 
 ```
-cd <base_folder_this_project>
-docker compose up
+cd <base_folder_path_fashion_campus>
+docker compose -f docker-compose-local.yml up
 ```
+
+Ensure that docker is running
