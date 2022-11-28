@@ -39,40 +39,8 @@ git clone https://gitlab.com/andrifanky/fashion-campus.git
 After cloning the fashion-campus repository, launch your code editor and navigate to the fashion-campus folder. Before running fashion-campus on your local machine, modify the following settings.
 
 Open the `.env` file, then modify it
-- POSTGRES_HOST=`127.0.0.1`
-- UPLOAD_STORAGE=`local`
+- CELERY_BROKER_URL=redis://`fashion-campus-redis_worker-1`:6379/0
 - IMAGE_PREDICTION_URL=http://`127.0.0.1`:5050
-
-Open the `docker-compose.yaml`, replace the image in web services with `dallas18/startup-campus-fe-local:latest`
-
-Comment out some of the following code
-
-In the `.env` file
-```
-# GOOGLE_APPLICATION_CREDENTIALS=creds_gcs.json
-# BUCKET_NAME=image_fc
-# CELERY_BROKER_URL=redis://fashion-campus-redis_worker-1:6379/0
-```
-
-In the `docker-compose.yaml`
-```
-# celery_worker:
-#   build: .
-#   image: fashion-campus-worker
-#   command: celery -A app.main.celery worker --loglevel=INFO --uid=nobody --gid=nogroup
-#   env_file:
-#     - .env
-#   depends_on:
-#     - flask_app
-#     - redis_worker
-
-# redis_worker:
-#   image: redis:7
-#   ports:
-#   - 6379:6379
-#   environment:
-#   - REDIS_PASSWORD=redisworker101
-```
 
 ## Run Fashion-Campus
 
@@ -80,7 +48,7 @@ Then open the code editor's terminal and execute the following command.
 
 ```
 cd <base_folder_path_fashion_campus>
-docker compose up
+docker compose -f docker-compose-local.yml up
 ```
 
 Ensure that docker is running
