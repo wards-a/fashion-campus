@@ -14,6 +14,8 @@ Backend repository for Final Project Startup Campus
 - [google-cloud-storage](https://cloud.google.com/storage/docs/reference/libraries#client-libraries-install-python) v2.1.0
 - [Flask-Bcrypt](https://flask-bcrypt.readthedocs.io/en/1.0.1/) v1.0.1
 - [PyJWT](https://pyjwt.readthedocs.io/en/stable/) v1.7.1
+- [Celery](https://docs.celeryq.dev/en/stable/getting-started/introduction.html) v5.2.7
+- [redis](https://pypi.org/project/redis/) v4.3.5
 - [image-prediction](https://github.com/rizanqardafil/fashion-mnist)
 
 # Getting Started
