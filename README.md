@@ -4,13 +4,17 @@ Backend repository for Final Project Startup Campus
 
 ## Built With
 
-- [Flask](https://flask.palletsprojects.com/en/2.1.x/) v2.1.2
-- [Flask-SQLAlchemy](https://pypi.org/project/flask-sqlalchemy/2.5.1/) v2.5.1
+- [Flask](https://flask.palletsprojects.com/en/2.2.x/) v2.2.2
+- [Flask-Restx](https://flask-restx.readthedocs.io/en/latest/) v1.0.3
+- [Flask-Cors](https://flask-cors.readthedocs.io/en/latest/) v3.0.10
+- [Requests](https://requests.readthedocs.io/en/latest/) v2.28.1
+- [Flask-SQLAlchemy](https://flask-sqlalchemy.palletsprojects.com/en/3.0.x/) v3.0.2
 - [psycopg2-binary](https://www.psycopg.org/docs/) v2.9.3
 - [Flask-Migrate](https://flask-migrate.readthedocs.io/en/latest/) v3.1.0
-- [flask-restx](https://flask-restx.readthedocs.io/en/latest/) v0.5.1
-- [werkzeug](https://pypi.org/project/Werkzeug/2.1.2/) v2.1.2
-- [google-cloud-storage](https://cloud.google.com/storage/docs/reference/libraries) v2.1.0
+- [google-cloud-storage](https://cloud.google.com/storage/docs/reference/libraries#client-libraries-install-python) v2.1.0
+- [Flask-Bcrypt](https://flask-bcrypt.readthedocs.io/en/1.0.1/) v1.0.1
+- [PyJWT](https://pyjwt.readthedocs.io/en/stable/) v1.7.1
+- [image-prediction](https://github.com/rizanqardafil/fashion-mnist)
 
 # Getting Started
 
@@ -31,6 +35,6 @@ git clone https://gitlab.com/andrifanky/fashion-campus.git
 With docker
 
 ```
-cd <base_folder_this_repo>
+cd <base_folder_this_project>
 docker compose up
 ```
