@@ -78,9 +78,10 @@ In the `docker-compose.yaml`
 ## Run Fashion-Campus
 
 Then open the code editor's terminal and execute the following command.
-Ensure that docker is running
 
 ```
 cd <base_folder_path_fashion_campus>
 docker compose up
 ```
+
+Ensure that docker is running
