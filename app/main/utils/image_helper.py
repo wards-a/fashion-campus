@@ -1,9 +1,11 @@
-import os, base64
+import os, base64, pathlib
 
 from flask_restx import abort
 from google.cloud import storage
 
     
+UPLOAD_FOLDER = pathlib.Path().resolve()/"assets/images"
+
 ALLOWED_EXTENSIONS = {'jpg', 'png', 'svg', 'webp'}
 ALLOWED_MIMETYPE = {'image/jpeg', 'image/png', 'image/svg', 'image/webp'}
 
@@ -62,3 +64,10 @@ def b64str_to_byte(b64_string):
         result = base64.b64decode(b64_string)
 
     return result
+
+def upload_to_local_folder(file):
+    with open(UPLOAD_FOLDER/file['filename'], 'wb') as f:
+        f.write(file['file'])
+
+def remove_from_local_folder(filename):
+    pathlib.Path(UPLOAD_FOLDER/filename).unlink(missing_ok=True)

@@ -8,7 +8,13 @@ from app.main.model.product_image import ProductImage
 from app.main.model.category import Category
 from app.main.service.auth_service import get_user_by_id
 from app.main.service.cart_service import delete_cart_by_product
-from app.main.utils.image_helper import generate_filename, b64str_to_byte, allowed_mimetype
+from app.main.utils.image_helper import (
+    generate_filename, 
+    b64str_to_byte, 
+    allowed_mimetype,
+    upload_to_local_folder,
+    remove_from_local_folder
+)
 from app.main.utils.celery_tasks import upload_to_gcs, remove_from_gcs
 
 ########### GET PRODUCT LIST ###########
@@ -138,7 +144,7 @@ def save_product_changes(data):
 
             if deleted_rows:
                 images_to_delete = [e[0] for e in deleted_rows]
-                _remove_from_gcs(images_to_delete)
+                _remove_images(images_to_delete)
             
             if new_images:
                 data['images'] = new_images
@@ -249,16 +255,29 @@ def _upload_images(data):
         })
         images.append(image)
         no+=1
-
-    for image in images:
-        upload_to_gcs.apply_async(args=[image], countdown=3)
+    
+    if os.environ.get('UPLOAD_STORAGE') == 'cloud':
+        for image in images:
+            upload_to_gcs.apply_async(args=[image], countdown=3)
+    elif os.environ.get('UPLOAD_STORAGE') == 'local':
+        for image in images:
+            upload_to_local_folder(image)
+    else:
+        abort(500, "Can't determine storage location")
 
     images_name = [e['filename'] for e in images]
     return images_name
 
-def _remove_from_gcs(data: list):
-    for filename in data:
-        remove_from_gcs.apply_async(args=[filename], countdown=3)
+def _remove_images(data: list):
+    if os.environ.get('UPLOAD_STORAGE') == 'cloud':
+        for filename in data:
+            remove_from_gcs.apply_async(args=[filename], countdown=3)
+    elif os.environ.get('UPLOAD_STORAGE') == 'local':
+        for filename in data:
+            remove_from_local_folder(filename)
+    else:
+        abort(500, "Can't determine storage location")
+    
 
 ########### Validation ###########
 def _validation(data: dict) -> dict:
