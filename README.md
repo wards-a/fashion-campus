@@ -44,6 +44,8 @@ Open the `.env` file, then modify it
 - IMAGE_PREDICTION_URL=http://`127.0.0.1`:5050
 - BACKEND_URL=http://`127.0.0.1`:5000
 
+Open the `docker-compose.yaml`, replace the image in web services with `dallas18/startup-campus-fe-local:latest`
+
 Comment out some of the following code
 
 In the `.env` file
