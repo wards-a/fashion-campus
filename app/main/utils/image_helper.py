@@ -7,8 +7,10 @@ from google.cloud import storage
 ALLOWED_EXTENSIONS = {'jpg', 'png', 'svg', 'webp'}
 ALLOWED_MIMETYPE = {'image/jpeg', 'image/png', 'image/svg', 'image/webp'}
 
-def gcs_bucket(bucket: str = None):
-    bucket_name = bucket if bucket else os.environ.get('BUCKET_NAME')
+def gcs_bucket():
+    bucket_name = os.environ.get('BUCKET_NAME')
+    if not bucket_name:
+        abort(500, "Bucket name does not exists")
     storage_client = storage.Client()
     bucket = storage_client.bucket(bucket_name)
     return bucket

@@ -251,26 +251,14 @@ def _upload_images(data):
         no+=1
 
     for image in images:
-        data = {
-            "file": image,
-            "bucket": "image_fc",
-            "path": "product/"
-        }
-        upload_to_gcs.apply_async(kwargs=data, countdown=3)
+        upload_to_gcs.apply_async(args=[image], countdown=3)
 
     images_name = [e['filename'] for e in images]
     return images_name
 
 def _remove_from_gcs(data: list):
     for filename in data:
-        remove_from_gcs.apply_async(
-            kwargs={
-                "filename": filename,
-                "bucket": "image_fc",
-                "path": "product/"
-            },
-            countdown=3
-        )
+        remove_from_gcs.apply_async(args=[filename], countdown=3)
 
 ########### Validation ###########
 def _validation(data: dict) -> dict:
