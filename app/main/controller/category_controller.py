@@ -21,7 +21,7 @@ category_put_model = CategoryApiModel.category_put_model
 class CategoriesController(Resource):
     @category_ns.marshal_list_with(all_category_model, envelope="data")
     def get(self):
-        return get_all_category()
+        return get_all_category(request.headers)
     
     @category_ns.expect(category_post_model)
     @token_required
