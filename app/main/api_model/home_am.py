@@ -4,14 +4,15 @@ from flask_restx import Namespace, fields
 from app.main.api_model.products_am import ProductImage
 
 
-class CategoryImage(fields.Raw):
+class BannerImage(fields.Raw):
     __schema_type__ = "string"
 
     def format(self, value):
         if value:
-            return url_for("api.image", image_extension=value)
+            return url_for("api.image", image_extension=value[0].image)
         else:
-            return url_for("api.image", image_extension="default.jpg")
+            return url_for("api.image", image_extension="defaultbanner.jpg")
+
 
 class HomeApiModel:
     api = Namespace("home")
@@ -19,7 +20,9 @@ class HomeApiModel:
     home_category_model = api.model("HomeCategory", {
         "id": fields.String(),
         "title": fields.String(attribute="name"),
-        "image": ProductImage(attribute='images')
+        "image": BannerImage(attribute='images')
     })
 
-    home_banner_model = api.clone("HomeBanner", home_category_model)
+    home_banner_model = api.clone("HomeBanner", home_category_model, {
+        "image": ProductImage(attribute='images')
+    })
