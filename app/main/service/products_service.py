@@ -43,16 +43,16 @@ def _product_list(data):
         category = data['category'].split(',')
         filters += (Product.category_id.in_(category), )
     # filter by price (lower, higher)
-    if 'harga' in data: # key: price
-        start, end = data['harga'].split(',')
+    if 'price' in data:
+        start, end = data['price'].split(',')
         filters += (Product.price.between(start, end), )
     # filter by conditon new/used
-    if 'kondisi' in data: # key: condition
-        condition = data['kondisi'].split(',')
+    if 'condition' in data:
+        condition = data['condition'].split(',')
         filters += (Product.condition.in_(condition), )
     # filter by similar names
     if 'product_name' in data:
-        filters += (Product.name.like('%'+str(data['product_name'])+'%'), )
+        filters += (Product.name.ilike('%'+data['product_name']+'%'), )
     # query; get product list
     try:
         result = db.paginate(
@@ -68,9 +68,9 @@ def _product_list(data):
             response_body.update({'success': False, 'message': 'No items available'})
             return response_body, 404
     except ValueError as e:
-        abort(400, 'Page and page size must be numeric')
+        return {"message": "Page and page size must be numeric"}, 400
     except db.exc.DataError as e:
-        abort(500, "Something went wrong", error=str(e.orig))
+        return {"message": "Something went wrong", "error": str(e.orig)}, 500
     
     return response_body
 
@@ -84,7 +84,7 @@ def get_product_detail(product_id):
             .options(db.joinedload(Product.category))
         ).scalar()
     except db.exc.DataError as e:
-        abort(500, "Something went wrong", error=str(e.orig))
+        return {"message": "Something went wrong", "error": str(e.orig)}, 500
     if not result:
         abort(404, c_not_found='Item not available')
     return result
@@ -115,7 +115,7 @@ def save_new_product(data):
         db.session.flush()
     except:
         db.session.rollback()
-        abort(500, "Product could not be added")
+        return {"message": "Product could not be added"}, 500
     
     db.session.commit()
     return {"message": "Product added"}, 201
@@ -164,7 +164,7 @@ def save_product_changes(data):
         db.session.flush()
     except:
         db.session.rollback()
-        abort(500, "Product could not be updated")
+        return {"message": "Product could not be updated"}, 500
     
     db.session.commit()
 
@@ -182,7 +182,7 @@ def mark_as_deleted(product_id):
         db.session.commit()
     except db.exc.DataError:
         db.session.rollback()
-        abort(404, "Item not available")
+        return {"message": "Item not available"}, 404
     
     delete_cart_by_product(product.id)
 
@@ -205,16 +205,16 @@ def search_by_image(data):
         name_list = category.split()
         result = db.session.execute(
             db.select(Category.id)
-            .filter(db.or_(*[Category.name.like('%'+name+'%') for name in name_list]))
+            .filter(db.or_(*[Category.name.ilike('%'+name+'%') for name in name_list]))
         ).scalars().all()
         if not result:
             abort(404, c_not_found="There is no category for that image")
         category_id = ','.join([str(e) for e in result])
         response_data = {"category_id": category_id}
     except KeyError:
-        abort(500, "Something went wrong")
+        return {"message": "Something went wrong"}, 500
     except IndexError:
-        abort(500, "Something went wrong")
+        return {"message": "Something went wrong"}, 500
 
     return response_data
 
