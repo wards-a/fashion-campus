@@ -1,4 +1,4 @@
-import copy, requests, os, jwt
+import copy, requests, os, jwt, re
 
 from flask_restx import abort
 
@@ -198,14 +198,19 @@ def search_by_image(data):
         r = requests.post(url, files=files)
         ### get category from response (html script) image prediction ###
         response_text = r.text
-        category = response_text[response_text.find('Detected Image: ')+1 : response_text.find('<')]
+        category = re.search("Detected Image: (.*?)<", response_text).group(1)
         if category.lower() == "error":
             raise KeyError()
         ### get the category id based on the prediction result ###
-        result = db.session.execute(db.select(Category).filter_by(name=category)).scalar()
+        name_list = category.split()
+        result = db.session.execute(
+            db.select(Category.id)
+            .filter(db.or_(*[Category.name.like('%'+name+'%') for name in name_list]))
+        ).scalars().all()
         if not result:
-            abort(404, c_not_found="Product not found")
-        response_data = {"category_id": result.id}
+            abort(404, c_not_found="There is no category for that image")
+        category_id = ','.join([str(e) for e in result])
+        response_data = {"category_id": category_id}
     except KeyError:
         abort(500, "Something went wrong")
     except IndexError:
