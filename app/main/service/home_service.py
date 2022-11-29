@@ -1,6 +1,7 @@
 from app.main import db
 from app.main.model.category import Category
 from app.main.model.product import Product
+from app.main.model.product_image import ProductImage
 from app.main.model.order_detail import OrderDetail
 
 def get_home_categories():
@@ -11,21 +12,21 @@ def get_home_categories():
         .limit(4)
     ).scalars().all()
 
-    category_id = [e.id for e in  categories]
-
-    products = db.session.execute(
-        db.select(Product)
-        .distinct(Product.category_id)
-        .filter(db.and_(Product.category_id.in_(category_id), Product.deleted=="0"))
-    ).scalars()
-
     for e in categories:
-        product = [i for i in products if i.category_id==e.id]
-        if product:
-            setattr(e, 'images', product[0].images)
-        else:
-            setattr(e, 'images', '')
+        image = db.session.execute(
+            db.select(ProductImage.image)
+            .join(Product)
+            .join(Category)
+            .filter(
+                Category.id==e.id,
+                Product.deleted=="0"
+            )
+        ).scalar()
 
+        if image:
+            setattr(e, 'image', image)
+        else:
+            setattr(e, 'image', '')
     return categories
 
 def get_banner():
