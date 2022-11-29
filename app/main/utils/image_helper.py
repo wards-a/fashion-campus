@@ -1,14 +1,18 @@
-import os, base64
+import os, base64, pathlib
 
 from flask_restx import abort
 from google.cloud import storage
 
     
+UPLOAD_FOLDER = pathlib.Path().resolve()/"assets/images"
+
 ALLOWED_EXTENSIONS = {'jpg', 'png', 'svg', 'webp'}
 ALLOWED_MIMETYPE = {'image/jpeg', 'image/png', 'image/svg', 'image/webp'}
 
-def gcs_bucket(bucket: str = None):
-    bucket_name = bucket if bucket else os.environ.get('BUCKET_NAME')
+def gcs_bucket():
+    bucket_name = os.environ.get('BUCKET_NAME')
+    if not bucket_name:
+        abort(500, "Bucket name does not exists")
     storage_client = storage.Client()
     bucket = storage_client.bucket(bucket_name)
     return bucket
@@ -18,7 +22,7 @@ def allowed_file_media(filename, allowed_extensions: set = None) -> str:
     try:
         extension = filename.split('.')[1]
     except IndexError:
-        abort(400, "Invalid filename")
+        return {'message': 'Invalid filename'}, 400
 
     if extension not in _allowed_extensions:
         abort(
@@ -53,7 +57,7 @@ def generate_filename(name: str, media_type: str, condition: str = None, other: 
 
 def b64str_to_byte(b64_string):
     ### decode base64 string image ###
-    if 'data' in b64_string:
+    if ',' in b64_string:
         b64_string_list = b64_string.split(',')
         result = base64.b64decode(b64_string_list[1])
     else:

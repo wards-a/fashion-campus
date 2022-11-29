@@ -1,4 +1,4 @@
-import copy, requests, os, jwt
+import copy, requests, os, jwt, re
 
 from flask_restx import abort
 
@@ -8,7 +8,11 @@ from app.main.model.product_image import ProductImage
 from app.main.model.category import Category
 from app.main.service.auth_service import get_user_by_id
 from app.main.service.cart_service import delete_cart_by_product
-from app.main.utils.image_helper import generate_filename, b64str_to_byte, allowed_mimetype
+from app.main.utils.image_helper import (
+    generate_filename, 
+    b64str_to_byte, 
+    allowed_mimetype
+)
 from app.main.utils.celery_tasks import upload_to_gcs, remove_from_gcs
 
 ########### GET PRODUCT LIST ###########
@@ -39,16 +43,16 @@ def _product_list(data):
         category = data['category'].split(',')
         filters += (Product.category_id.in_(category), )
     # filter by price (lower, higher)
-    if 'harga' in data: # key: price
-        start, end = data['harga'].split(',')
+    if 'price' in data:
+        start, end = data['price'].split(',')
         filters += (Product.price.between(start, end), )
     # filter by conditon new/used
-    if 'kondisi' in data: # key: condition
-        condition = data['kondisi'].split(',')
+    if 'condition' in data:
+        condition = data['condition'].split(',')
         filters += (Product.condition.in_(condition), )
     # filter by similar names
     if 'product_name' in data:
-        filters += (Product.name.like('%'+str(data['product_name'])+'%'), )
+        filters += (Product.name.ilike('%'+data['product_name']+'%'), )
     # query; get product list
     try:
         result = db.paginate(
@@ -64,9 +68,9 @@ def _product_list(data):
             response_body.update({'success': False, 'message': 'No items available'})
             return response_body, 404
     except ValueError as e:
-        abort(400, 'Page and page size must be numeric')
+        return {"message": "Page and page size must be numeric"}, 400
     except db.exc.DataError as e:
-        abort(500, "Something went wrong", error=str(e.orig))
+        return {"message": "Something went wrong", "error": str(e.orig)}, 500
     
     return response_body
 
@@ -80,7 +84,7 @@ def get_product_detail(product_id):
             .options(db.joinedload(Product.category))
         ).scalar()
     except db.exc.DataError as e:
-        abort(500, "Something went wrong", error=str(e.orig))
+        return {"message": "Something went wrong", "error": str(e.orig)}, 500
     if not result:
         abort(404, c_not_found='Item not available')
     return result
@@ -111,7 +115,7 @@ def save_new_product(data):
         db.session.flush()
     except:
         db.session.rollback()
-        abort(500, "Product could not be added")
+        return {"message": "Product could not be added"}, 500
     
     db.session.commit()
     return {"message": "Product added"}, 201
@@ -138,7 +142,7 @@ def save_product_changes(data):
 
             if deleted_rows:
                 images_to_delete = [e[0] for e in deleted_rows]
-                _remove_from_gcs(images_to_delete)
+                _remove_images(images_to_delete)
             
             if new_images:
                 data['images'] = new_images
@@ -160,7 +164,7 @@ def save_product_changes(data):
         db.session.flush()
     except:
         db.session.rollback()
-        abort(500, "Product could not be updated")
+        return {"message": "Product could not be updated"}, 500
     
     db.session.commit()
 
@@ -178,7 +182,7 @@ def mark_as_deleted(product_id):
         db.session.commit()
     except db.exc.DataError:
         db.session.rollback()
-        abort(404, "Item not available")
+        return {"message": "Item not available"}, 404
     
     delete_cart_by_product(product.id)
 
@@ -194,18 +198,23 @@ def search_by_image(data):
         r = requests.post(url, files=files)
         ### get category from response (html script) image prediction ###
         response_text = r.text
-        category = response_text[response_text.find('Detected Image: ')+1 : response_text.find('<')]
+        category = re.search("Detected Image: (.*?)<", response_text).group(1)
         if category.lower() == "error":
             raise KeyError()
         ### get the category id based on the prediction result ###
-        result = db.session.execute(db.select(Category).filter_by(name=category)).scalar()
+        name_list = category.split()
+        result = db.session.execute(
+            db.select(Category.id)
+            .filter(db.or_(*[Category.name.ilike('%'+name+'%') for name in name_list]))
+        ).scalars().all()
         if not result:
-            abort(404, c_not_found="Product not found")
-        response_data = {"category_id": result.id}
+            abort(404, c_not_found="There is no category for that image")
+        category_id = ','.join([str(e) for e in result])
+        response_data = {"category_id": category_id}
     except KeyError:
-        abort(500, "Something went wrong")
+        return {"message": "Something went wrong"}, 500
     except IndexError:
-        abort(500, "Something went wrong")
+        return {"message": "Something went wrong"}, 500
 
     return response_data
 
@@ -249,28 +258,17 @@ def _upload_images(data):
         })
         images.append(image)
         no+=1
-
+    
     for image in images:
-        data = {
-            "file": image,
-            "bucket": "image_fc",
-            "path": "product/"
-        }
-        upload_to_gcs.apply_async(kwargs=data, countdown=3)
+        upload_to_gcs.apply_async(args=[image], countdown=3)
 
     images_name = [e['filename'] for e in images]
     return images_name
 
-def _remove_from_gcs(data: list):
+def _remove_images(data: list):
     for filename in data:
-        remove_from_gcs.apply_async(
-            kwargs={
-                "filename": filename,
-                "bucket": "image_fc",
-                "path": "product/"
-            },
-            countdown=3
-        )
+        remove_from_gcs.apply_async(args=[filename], countdown=3)
+    
 
 ########### Validation ###########
 def _validation(data: dict) -> dict:

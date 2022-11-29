@@ -4,33 +4,53 @@ Backend repository for Final Project Startup Campus
 
 ## Built With
 
-- [Flask](https://flask.palletsprojects.com/en/2.1.x/) v2.1.2
-- [Flask-SQLAlchemy](https://pypi.org/project/flask-sqlalchemy/2.5.1/) v2.5.1
+- [Flask](https://flask.palletsprojects.com/en/2.2.x/) v2.2.2
+- [Flask-Restx](https://flask-restx.readthedocs.io/en/latest/) v1.0.3
+- [Flask-Cors](https://flask-cors.readthedocs.io/en/latest/) v3.0.10
+- [Requests](https://requests.readthedocs.io/en/latest/) v2.28.1
+- [Flask-SQLAlchemy](https://flask-sqlalchemy.palletsprojects.com/en/3.0.x/) v3.0.2
 - [psycopg2-binary](https://www.psycopg.org/docs/) v2.9.3
 - [Flask-Migrate](https://flask-migrate.readthedocs.io/en/latest/) v3.1.0
-- [flask-restx](https://flask-restx.readthedocs.io/en/latest/) v0.5.1
-- [werkzeug](https://pypi.org/project/Werkzeug/2.1.2/) v2.1.2
-- [google-cloud-storage](https://cloud.google.com/storage/docs/reference/libraries) v2.1.0
+- [google-cloud-storage](https://cloud.google.com/storage/docs/reference/libraries#client-libraries-install-python) v2.1.0
+- [Flask-Bcrypt](https://flask-bcrypt.readthedocs.io/en/1.0.1/) v1.0.1
+- [PyJWT](https://pyjwt.readthedocs.io/en/stable/) v1.7.1
+- [Celery](https://docs.celeryq.dev/en/stable/getting-started/introduction.html) v5.2.7
+- [redis](https://pypi.org/project/redis/) v4.3.5
+- [fashion-mnist](https://github.com/rizanqardafil/fashion-mnist)
 
-# Getting Started
+# How to run a Fashion-Campus locally
 
-## Prerequisites
+## Initial Setup
 
-- [ ] Docker and docker compose
+Please ensure that the tools listed below are installed.
 
-## Installation
+- [ ] Code editor for example [Visual Studio Code](https://code.visualstudio.com/)
+- [ ] Version control [Git](https://git-scm.com/)
+- [ ] [Docker](https://www.docker.com/) and [docker compose](https://docs.docker.com/compose/). In this project, we're using Docker Compose v2.12.0, see for [installation](https://docs.docker.com/compose/install/linux/#install-the-plugin-manually).
 
-- Clone this repository
+## Clone repository
+
+Run the following command in your terminal.
 
 ```
 git clone https://gitlab.com/andrifanky/fashion-campus.git
 ```
 
-## Usage
+## Change environment
 
-With docker
+After cloning the fashion-campus repository, launch your code editor and navigate to the fashion-campus folder. Before running fashion-campus on your local machine, modify the following settings.
+
+Open the `.env` file, then modify it
+- CELERY_BROKER_URL=redis://`fashion-campus-redis_worker-1`:6379/0
+- IMAGE_PREDICTION_URL=http://`127.0.0.1`:5050
+
+## Run Fashion-Campus
+
+Then open the code editor's terminal and execute the following command.
 
 ```
-cd <base_folder_this_repo>
-docker compose up
+cd <base_folder_path_fashion_campus>
+docker compose -f docker-compose-local.yml up
 ```
+
+Ensure that docker is running

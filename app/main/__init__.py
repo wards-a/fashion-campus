@@ -26,7 +26,7 @@ def create_app():
     cors.init_app(app)
     ### celery config ###
     app.config.update(CELERY_CONFIG={
-        'broker_url': os.environ['CELERY_BROKER_URL'],
+        'broker_url': os.environ.get('CELERY_BROKER_URL'),
         'task_serializer': 'pickle',
         'result_serializer': 'pickle',
         'accept_content': ['application/json', 'application/x-python-serialize']

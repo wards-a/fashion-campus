@@ -1,14 +1,18 @@
-import copy
+import copy, jwt, os
 
-from flask import abort
+from flask_restx import abort
 
 from app.main import db
 from app.main.model.category import Category
+from app.main.service.auth_service import get_user_by_id
 
-def get_all_category():
-    result = db.session.execute(db.select(Category).where(Category.deleted == "0")).all()
-    result = [e[0] for e in result]
-    return result
+def get_all_category(headers):
+    current_user = _get_user_identity(headers)
+    if current_user and current_user.type.value == "seller":
+        result = db.session.execute(db.select(Category)).scalars()
+    else:
+        result = db.session.execute(db.select(Category).where(Category.deleted == "0")).scalars()
+    return result.all()
 
 def create_category(data):
     _validation(data)
@@ -78,3 +82,11 @@ def mark_as_deleted(category_id):
         abort(404, "Category not available")
 
     return {"message": "Category deleted"}, 200
+
+def _get_user_identity(headers):
+    if "Authentication" in headers and headers["Authentication"]:
+        user = jwt.decode(headers["Authentication"], os.environ.get('SECRET_KEY'), algorithms=["HS256"])
+        current_user = get_user_by_id(user['id'])
+        return current_user
+    else:
+        return None

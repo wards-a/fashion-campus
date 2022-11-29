@@ -19,7 +19,7 @@ def get_cart(id):
                         "size": i.size
                     },
                     "price": int(i.product.price),
-                    "image": i.product.images[0].image if i.product.images else "/image/default.jpg",
+                    "image": "/image/"+i.product.images[0].image if i.product.images else "/image/default.jpg",
                     "name": i.product.name
                 }
                 data.append(temp)

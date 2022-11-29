@@ -44,8 +44,7 @@ class ProductsController(Resource):
     @admin_level
     @validate_payload(product_post_schema)
     def post(user, self):
-        data = request.get_data()
-        data = json.loads(data.decode('utf-8'))
+        data = request.json
         return save_new_product(data)
     
     @products_ns.expect(product_put_model)
@@ -53,8 +52,7 @@ class ProductsController(Resource):
     @admin_level
     @validate_payload(product_put_schema)
     def put(user, self):
-        data = request.get_data()
-        data = json.loads(data.decode('utf-8'))
+        data = request.json
         return save_product_changes(data)
 
 @products_ns.route("/<product_id>")
