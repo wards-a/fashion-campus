@@ -41,16 +41,19 @@ git clone https://gitlab.com/andrifanky/fashion-campus.git
 After cloning the fashion-campus repository, launch your code editor and navigate to the fashion-campus folder. Before running fashion-campus on your local machine, modify the following settings.
 
 Open the `.env` file, then modify it
-- CELERY_BROKER_URL=redis://`fashion-campus-redis_worker-1`:6379/0
 - IMAGE_PREDICTION_URL=http://`127.0.0.1`:5050
 
 ## Run Fashion-Campus
 
-Then open the code editor's terminal and execute the following command.
+Then open the code editor's terminal.
+
+Type `docker info` to see if Docker is running
+
+and execute the following command.
 
 ```
 cd <base_folder_path_fashion_campus>
 docker compose -f docker-compose-local.yml up
 ```
 
-Ensure that docker is running
+You can now access the fashion-campus web application by going to http://127.0.0.1:3000.
