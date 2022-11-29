@@ -57,7 +57,7 @@ def generate_filename(name: str, media_type: str, condition: str = None, other: 
 
 def b64str_to_byte(b64_string):
     ### decode base64 string image ###
-    if 'data' in b64_string:
+    if ',' in b64_string:
         b64_string_list = b64_string.split(',')
         result = base64.b64decode(b64_string_list[1])
     else:
