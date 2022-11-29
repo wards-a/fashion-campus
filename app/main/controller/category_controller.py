@@ -28,8 +28,7 @@ class CategoriesController(Resource):
     @admin_level
     @validate_payload(category_post_schema)
     def post(user, self):
-        data = request.get_data()
-        data = json.loads(data.decode('utf-8'))
+        data = request.json
         return create_category(data)
 
 @category_ns.route("/<category_id>")
@@ -37,8 +36,7 @@ class CategoryController(Resource):
     @token_required
     @admin_level
     def put(user, self, category_id):
-        data = request.get_data()
-        data = json.loads(data.decode('utf-8'))
+        data = request.json
         return save_category_changes(data, str(category_id))
     
     @token_required

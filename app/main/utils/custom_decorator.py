@@ -13,28 +13,29 @@ def validate_payload(schema):
             content_type = request.headers.get('Content-Type')
             if 'application/json' in content_type:
                 instance = request.json
+            elif 'multipart/form-data' in content_type:
+                instance = request.form
             elif 'text/plain' in content_type:
                 data = request.get_data()
                 instance = json.loads(data.decode('utf-8'))
-            elif 'multipart/form-data' in content_type:
-                instance = request.form
             try:
                 validate(instance=instance, schema=schema)
             except exceptions.ValidationError as e:
                 if e.validator == 'type':
-                    abort(400, e.message)
+                    return {"message": e.message}, 400
                 if e.validator == 'required':
                     field_key = re.findall("'(.*?)'", e.message)[0]
                     try:
                         msg = e.schema['properties'][field_key]['errorMessage'][e.validator]
-                        abort(400, msg)
+                        return {"message": msg}, 400
                     except KeyError:
-                        abort(400, e.message)
+                        return {"message": e.message}, 400
                 try:            
                     msg = e.schema['errorMessage'][e.validator]
-                    abort(400, msg)
+                    return {"message": msg}, 400
+
                 except KeyError:
-                    abort(400, e.message)
+                    return {"message": e.message}, 400
             return func(*args, **kwargs)
         return decorated_function
     return decorator
