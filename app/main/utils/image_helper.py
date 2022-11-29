@@ -22,7 +22,7 @@ def allowed_file_media(filename, allowed_extensions: set = None) -> str:
     try:
         extension = filename.split('.')[1]
     except IndexError:
-        abort(400, "Invalid filename")
+        return {'message': 'Invalid filename'}, 400
 
     if extension not in _allowed_extensions:
         abort(
