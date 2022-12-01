@@ -12,18 +12,25 @@ from app.main.service.cart_service import (
 
 cart_ns = CartApiModel.api
 
+headers = CartApiModel.headers
+post_cart_model = CartApiModel.post_cart_model
+
 @cart_ns.route("")
 class CartsController(Resource):
+    @cart_ns.expect(headers, post_cart_model)
     @token_required
     def post(user, self):
         body = request.json
         return add_cart(user.id, body)
     
+    @cart_ns.expect(headers)
     @token_required
     def get(user, self):
         return get_cart(user.id)
 
 @cart_ns.route("/<cart_id>")
+@cart_ns.expect(headers)
+@cart_ns.doc(params={'cart_id': 'Cart details uuid'})
 class CartController(Resource):
     @token_required
     def delete(user, sels, cart_id):

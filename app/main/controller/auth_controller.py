@@ -1,18 +1,14 @@
 import re
-from flask import request
-# import library for decorator
-from functools import wraps
 
+from flask import request
 from flask_restx import Resource
 
 from app.main import bcrypt
-
 from app.main.api_model.auth_am import AuthApiModel
 from app.main.service.auth_service import (
     get_user_by_email,
     save_new_user
 )
-from app.main.utils import custom_decorator
 from app.main.utils.token import generate_token
 
 
@@ -21,10 +17,13 @@ sign_in_ns = AuthApiModel.sign_in
 
 sign_up_schema = AuthApiModel.sign_up_schema
 sign_up_model = AuthApiModel.sign_up_model
+sign_in_model = AuthApiModel.sign_in_model
+sign_in_response = AuthApiModel.sign_in_response
 
 @sign_up_ns.route("")
 class SignUpController(Resource):
     @sign_up_ns.expect(sign_up_model)
+    @sign_up_ns.response(201, "Object created")
     def post(self):
         body = request.json
         email = body.get('email')
@@ -49,6 +48,8 @@ class SignUpController(Resource):
 
 @sign_in_ns.route("")
 class SignInController(Resource):
+    @sign_in_ns.expect(sign_in_model)
+    @sign_in_ns.response(200, "Success", sign_in_response)
     def post(self):
         try:
             body = request.json

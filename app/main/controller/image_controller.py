@@ -24,10 +24,11 @@ from app.main.utils.image_helper import allowed_file_media
 
 image_ns = Namespace("image")
 
-@image_ns.route('/<image_extension>', endpoint="image")
+@image_ns.route('/<image_name_extension>', endpoint="image")
+@image_ns.doc(params={'image_name_extension': 'image_name.extension'})
 class ImageController(Resource):
-    def get(self, image_extension):
-        extension = allowed_file_media(image_extension)
+    def get(self, image_name_extension):
+        extension = allowed_file_media(image_name_extension)
         mime_type = "jpeg" if extension=="jpg" else extension
-        content =  serve_image(image_extension)
+        content =  serve_image(image_name_extension)
         return send_file(io.BytesIO(content), mimetype=f"image/{mime_type}")
