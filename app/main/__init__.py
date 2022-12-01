@@ -22,6 +22,8 @@ def create_app():
     app = Flask(__name__)
     app.config['SECRET_KEY'] = os.environ["SECRET_KEY"]
     app.config['MAX_CONTENT_LENGTH'] = 2 * 1024 * 1024
+    app.config['RESTX_MASK_SWAGGER'] = False
+    app.config['RESTX_MASK_HEADER'] = False
     ### cors config ###
     cors.init_app(app)
     ### celery config ###

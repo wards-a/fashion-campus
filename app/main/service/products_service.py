@@ -65,7 +65,7 @@ def _product_list(data):
         )
         response_body = {"data": result.items, "total_rows": result.total}
         if not result.items:
-            response_body.update({'success': False, 'message': 'No items available'})
+            response_body.update({'success': True, 'message': 'No items available'})
             return response_body, 404
     except ValueError as e:
         return {"message": "Page and page size must be numeric"}, 400
@@ -208,15 +208,13 @@ def search_by_image(data):
             .filter(db.or_(*[Category.name.ilike('%'+name+'%') for name in name_list]))
         ).scalars().all()
         if not result:
-            abort(404, c_not_found="There is no category for that image")
-        category_id = ','.join([str(e) for e in result])
-        response_data = {"category_id": category_id}
-    except KeyError:
-        return {"message": "Something went wrong"}, 500
+            return {"message": "Category not available"}, 204
+    except KeyError as e:
+        return {"message": "Something went wrong", "error": str(e)}, 500
     except IndexError:
-        return {"message": "Something went wrong"}, 500
+        return {"message": "Something went wrong", "error": str(e)}, 500
 
-    return response_data
+    return {"category_id": result}
 
 ########### Save Images ###########
 def _upload_images(data):

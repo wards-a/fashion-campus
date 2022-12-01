@@ -1,5 +1,3 @@
-import json
-
 from app.main.service.category_service import get_all_category, create_category, save_category_changes, mark_as_deleted
 from flask_restx import Resource
 from flask import request
@@ -16,14 +14,17 @@ category_post_schema = CategoryApiModel.category_post_schema
 category_post_model = CategoryApiModel.category_post_model
 category_put_schema = CategoryApiModel.category_put_schema
 category_put_model = CategoryApiModel.category_put_model
+headers = CategoryApiModel.headers
 
 @category_ns.route("")
 class CategoriesController(Resource):
+    @category_ns.expect(headers)
     @category_ns.marshal_list_with(all_category_model, envelope="data")
     def get(self):
         return get_all_category(request.headers)
     
-    @category_ns.expect(category_post_model)
+    @category_ns.expect(headers, category_post_model)
+    @category_ns.response(201, "Object created")
     @token_required
     @admin_level
     @validate_payload(category_post_schema)
@@ -32,13 +33,16 @@ class CategoriesController(Resource):
         return create_category(data)
 
 @category_ns.route("/<category_id>")
+@category_ns.doc(params={'category_id': 'uuid4'})
 class CategoryController(Resource):
+    @category_ns.expect(headers, category_post_model)
     @token_required
     @admin_level
     def put(user, self, category_id):
         data = request.json
         return save_category_changes(data, str(category_id))
-    
+
+    @category_ns.expect(headers)
     @token_required
     @admin_level
     def delete(user, self, category_id):

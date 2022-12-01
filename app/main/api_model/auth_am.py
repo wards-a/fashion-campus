@@ -1,4 +1,4 @@
-from flask_restx import Namespace
+from flask_restx import Namespace, fields
 
 
 class AuthApiModel:
@@ -50,5 +50,35 @@ class AuthApiModel:
         "required": ["name","email","phone_number","password"]
     }
 
-    sign_up_model = sign_up.schema_model("AuthApiModel", sign_up_schema)
-    
+    sign_up_model = sign_up.schema_model("SignUpPayload", sign_up_schema)
+
+    ### Sign-In post expected parameters ###
+    sign_in_schema = {
+        "type": "object",
+        "properties": {
+            "email": {
+                "type": "string",
+                "format": "email",
+                "example": "john@mail.com"
+            },
+            "password": {
+                "type": "string",
+                "example": "John1234"
+            }
+        },
+        "required": ["email", "password"]
+    }
+    sign_in_model = sign_in.schema_model("SignInPayload", sign_in_schema)
+
+    ### Sign In Response Model ###
+    user_information_model = sign_in.model("UserInformation", {
+        "name": fields.String(example="John Bradley"),
+        "email": fields.String(example="john@mail.com"),
+        "phone_number": fields.String(example="081222333444"),
+        "type": fields.String(example="buyer")
+    })
+    sign_in_response = sign_in.model("SignInResponse", {
+        "user_information": fields.Nested(user_information_model),
+        "token": fields.String(description="jwt-token"),
+        "message": fields.String(default="Login success")
+    })

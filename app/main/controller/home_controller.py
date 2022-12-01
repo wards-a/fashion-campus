@@ -1,7 +1,7 @@
 from flask_restx import Resource
 
 from app.main.api_model.home_am import HomeApiModel
-from  app.main.service.home_service import get_home_categories, get_banner
+from app.main.service.home_service import get_home_categories, get_banner
 
 
 home_ns = HomeApiModel.api
