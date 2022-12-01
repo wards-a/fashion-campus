@@ -13,10 +13,11 @@ orders_ns = OrderApiModel.orders
 order_post_schema = OrderApiModel.order_post_schema
 order_post_model = OrderApiModel.order_post_model
 order_list_model = OrderApiModel.order_list_model
+headers = OrderApiModel.headers
 
 @order_ns.route("")
 class OrderController(Resource):
-    @order_ns.expect(order_post_model)
+    @order_ns.expect(headers, order_post_model)
     @token_required
     @validate_payload(order_post_schema)
     def post(user, self):
@@ -25,6 +26,7 @@ class OrderController(Resource):
 
 @orders_ns.route("")
 class OrdersController(Resource):
+    @orders_ns.expect(headers)
     @orders_ns.marshal_list_with(order_list_model, envelope="data")
     @token_required
     @admin_level
