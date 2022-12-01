@@ -59,3 +59,5 @@ docker compose -f docker-compose-local.yml up
 ```
 
 You can now access the fashion-campus website at url http://127.0.0.1:3000.
+
+However, you must remain connected to the internet because several services require an internet connection to be accessed.
