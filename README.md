@@ -16,7 +16,7 @@ Backend repository for Final Project Startup Campus
 - [PyJWT](https://pyjwt.readthedocs.io/en/stable/) v1.7.1
 - [Celery](https://docs.celeryq.dev/en/stable/getting-started/introduction.html) v5.2.7
 - [redis](https://pypi.org/project/redis/) v4.3.5
-- [image-prediction](https://github.com/rizanqardafil/fashion-mnist)
+- [fashion-mnist](https://github.com/rizanqardafil/fashion-mnist)
 
 # How to run a Fashion-Campus locally
 
