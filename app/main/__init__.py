@@ -47,6 +47,7 @@ def create_app():
     db.init_app(app)
     ### migrate ###
     from app.main.model import (
+        banner,
         user,
         shipping_address,
         product,
