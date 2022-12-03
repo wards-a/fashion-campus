@@ -9,7 +9,7 @@ class BannerImage(fields.Raw):
         if value:
             return url_for("api.image", image_name_extension=value[0].image)
         else:
-            return url_for("api.image", image_name_extension="defaultbanner.jpg")
+            return url_for("api.image", image_name_extension="default.jpg")
 
 class CategoryImage(fields.Raw):
     __schema_type__ = "string"

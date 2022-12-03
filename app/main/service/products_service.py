@@ -51,7 +51,7 @@ def _product_list(data):
         condition = data['condition'].split(',')
         filters += (Product.condition.in_(condition), )
     # filter by similar names
-    if 'product_name' in data:
+    if 'product_name' in data and data['product_name']:
         filters += (Product.name.ilike('%'+data['product_name']+'%'), )
     # query; get product list
     try:
@@ -65,7 +65,7 @@ def _product_list(data):
         )
         response_body = {"data": result.items, "total_rows": result.total}
         if not result.items:
-            response_body.update({'success': True, 'message': 'No items available'})
+            response_body.update({'success': False, 'message': 'No items available'})
             return response_body, 404
     except ValueError as e:
         return {"message": "Page and page size must be numeric"}, 400
