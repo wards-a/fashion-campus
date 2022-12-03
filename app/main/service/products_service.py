@@ -51,7 +51,7 @@ def _product_list(data):
         condition = data['condition'].split(',')
         filters += (Product.condition.in_(condition), )
     # filter by similar names
-    if 'product_name' in data:
+    if 'product_name' in data and data['product_name']:
         filters += (Product.name.ilike('%'+data['product_name']+'%'), )
     # query; get product list
     try:
