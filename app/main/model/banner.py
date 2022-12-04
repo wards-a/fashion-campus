@@ -11,7 +11,7 @@ class Banner(db.Model):
 
     id = db.Column(UUID(as_uuid=True), primary_key=True, default=uuid4)
     title = db.Column(db.String, nullable=False, unique=True)
-    image = db.Column(db.String, nullable=False)
+    image = db.Column(db.String, nullable=False, unique=True)
     deleted = db.Column(
         db.Enum(Deleted, values_callable=lambda obj: [e.value for e in obj]),
         nullable=False,
