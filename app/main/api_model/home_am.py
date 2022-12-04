@@ -7,7 +7,7 @@ class BannerImage(fields.Raw):
 
     def format(self, value):
         if value:
-            return url_for("api.image", image_name_extension=value[0].image)
+            return url_for("api.image", image_name_extension=value)
         else:
             return url_for("api.image", image_name_extension="default.jpg")
 
@@ -31,5 +31,6 @@ class HomeApiModel:
     })
 
     home_banner_model = api.clone("HomeBanner", home_category_model, {
-        "image": BannerImage(attribute='images', example="/image/kaus-apolo-new-01.jpg")
+        "title": fields.String(example="Winter sale banner"),
+        "image": BannerImage(example="/image/winter-sale-banner.jpg")
     })
