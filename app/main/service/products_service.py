@@ -65,7 +65,7 @@ def _product_list(data):
         )
         response_body = {"data": result.items, "total_rows": result.total}
         if not result.items:
-            response_body.update({'success': False, 'message': 'No items available'})
+            response_body.update({'success': True, 'message': 'No items available'})
             return response_body, 404
     except ValueError as e:
         return {"message": "Page and page size must be numeric"}, 400

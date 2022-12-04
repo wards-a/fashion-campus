@@ -4,6 +4,7 @@ Backend repository for Final Project Startup Campus
 
 ## Built With
 
+- [Python](https://www.python.org/) v3.9
 - [Flask](https://flask.palletsprojects.com/en/2.2.x/) v2.2.2
 - [Flask-Restx](https://flask-restx.readthedocs.io/en/latest/) v1.0.3
 - [Flask-Cors](https://flask-cors.readthedocs.io/en/latest/) v3.0.10
@@ -16,6 +17,7 @@ Backend repository for Final Project Startup Campus
 - [PyJWT](https://pyjwt.readthedocs.io/en/stable/) v1.7.1
 - [Celery](https://docs.celeryq.dev/en/stable/getting-started/introduction.html) v5.2.7
 - [redis](https://pypi.org/project/redis/) v4.3.5
+- [PostgreSQL](https://www.postgresql.org/) v14
 - [fashion-mnist](https://github.com/rizanqardafil/fashion-mnist)
 
 # How to run a Fashion-Campus locally
@@ -56,4 +58,6 @@ cd <base_folder_path_fashion_campus>
 docker compose -f docker-compose-local.yml up
 ```
 
-You can now access the fashion-campus web application by going to http://127.0.0.1:3000.
+You can now access the fashion-campus website at url http://127.0.0.1:3000.
+
+However, you must remain connected to the internet because several services require an internet connection to be accessed.
