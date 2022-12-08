@@ -1,5 +1,6 @@
-import os, base64, pathlib
+import os, base64, pathlib, io
 
+from PIL import Image
 from flask_restx import abort
 from google.cloud import storage
 
@@ -48,11 +49,11 @@ def generate_filename(name: str, media_type: str, condition: str = None, other: 
     if other:
         name_convention.append(other)
 
-    extension = media_type.split('/')[1]
-    extension = 'jpg' if extension=='jpeg' else extension
+    # extension = media_type.split('/')[1]
+    # extension = 'jpg' if extension=='jpeg' else extension
 
     filename = '-'.join(name_convention)
-    filename += "."+extension
+    filename += ".jpg"
     return filename
 
 def b64str_to_byte(b64_string):
@@ -64,3 +65,19 @@ def b64str_to_byte(b64_string):
         result = base64.b64decode(b64_string)
 
     return result
+
+def resize_image(img_byte, basewidth=300, format='jpeg'):
+        
+
+    img_io = io.BytesIO()
+    im = Image.open(io.BytesIO(img_byte))
+    wpercent = (basewidth/float(im.size[0]))
+    hsize = int((float(im.size[1])*float(wpercent)))
+    im = im.resize((basewidth,hsize), Image.Resampling.LANCZOS)
+    if format == 'jpeg':
+        im.save(img_io, format=format, quality=100)
+    else:
+        im.save(img_io, format=format)
+
+    img_io.seek(0)
+    return img_io
