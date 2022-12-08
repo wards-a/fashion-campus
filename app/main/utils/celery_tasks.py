@@ -13,8 +13,7 @@ def upload_to_gcs(file):
 
     blob = bucket.blob(file['filename'])
     blob.content_type = file['media_type']
-    with blob.open('wb') as f:
-        f.write(file['file'])
+    blob.upload_from_file(file['file'])
 
 @celery.task(name="app.main.utils.celery_tasks.remove_from_gcs")
 def remove_from_gcs(filename):

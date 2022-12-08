@@ -11,7 +11,8 @@ from app.main.service.cart_service import delete_cart_by_product
 from app.main.utils.image_helper import (
     generate_filename, 
     b64str_to_byte, 
-    allowed_mimetype
+    allowed_mimetype,
+    resize_image
 )
 from app.main.utils.celery_tasks import upload_to_gcs, remove_from_gcs
 
@@ -208,7 +209,7 @@ def search_by_image(data):
             .filter(db.or_(*[Category.name.ilike('%'+name+'%') for name in name_list]))
         ).scalars().all()
         if not result:
-            return {"message": "Category not available"}, 204
+            return {"message": "Category not available"}, 404
     except KeyError as e:
         return {"message": "Something went wrong", "error": str(e)}, 500
     except IndexError:
@@ -241,6 +242,8 @@ def _upload_images(data):
         allowed_mimetype(media_type)
         ### decode ###
         result_byte = b64str_to_byte(e)
+        ### compress ###
+        im = resize_image(result_byte, basewidth=600)
         ### generate filename ###
         filename = generate_filename(
             name=name,
@@ -251,8 +254,8 @@ def _upload_images(data):
 
         image.update({
             "filename": filename,
-            "media_type": media_type,
-            "file": result_byte
+            "media_type": "image/jpeg",
+            "file": im
         })
         images.append(image)
         no+=1
