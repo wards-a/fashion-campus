@@ -16,7 +16,7 @@ Backend repository for Final Project Startup Campus
 - [Flask-Bcrypt](https://flask-bcrypt.readthedocs.io/en/1.0.1/) v1.0.1
 - [PyJWT](https://pyjwt.readthedocs.io/en/stable/) v1.7.1
 - [Celery](https://docs.celeryq.dev/en/stable/getting-started/introduction.html) v5.2.7
-- [redis](https://pypi.org/project/redis/) v4.3.5
+- [Pillow](https://pillow.readthedocs.io/en/stable/) v9.3.0
 - [PostgreSQL](https://www.postgresql.org/) v14
 - [fashion-mnist](https://github.com/rizanqardafil/fashion-mnist)
 
