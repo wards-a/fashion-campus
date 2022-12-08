@@ -81,3 +81,10 @@ def resize_image(img_byte, basewidth=300, format='jpeg'):
 
     img_io.seek(0)
     return img_io
+
+def secure_name(name):
+        ### replace some special characters with hyphens ###
+        name = name.translate({ord(c): "-" for c in " `~!@#$%^*()_={}[]|\:;'\"<>,.?/"})
+        name = name.replace('+', 'plus')
+        name = name.replace('&', 'and')
+        return name.lower()
