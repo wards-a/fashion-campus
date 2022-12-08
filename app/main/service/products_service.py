@@ -10,9 +10,10 @@ from app.main.service.auth_service import get_user_by_id
 from app.main.service.cart_service import delete_cart_by_product
 from app.main.utils.image_helper import (
     generate_filename, 
-    b64str_to_byte, 
+    b64str_to_byte,
     allowed_mimetype,
-    resize_image
+    resize_image,
+    secure_name
 )
 from app.main.utils.celery_tasks import upload_to_gcs, remove_from_gcs
 
@@ -219,13 +220,6 @@ def search_by_image(data):
 
 ########### Save Images ###########
 def _upload_images(data):
-    def secure_name(name):
-        ### replace some special characters with hyphens ###
-        name = name.translate({ord(c): "-" for c in " `~!@#$%^*()_={}[]|\:;'\"<>,.?/"})
-        name = name.replace('+', 'plus')
-        name = name.replace('&', 'and')
-        return name.lower()
-    
     name = secure_name(data['product_name'])
     images = list()
     no = 1
