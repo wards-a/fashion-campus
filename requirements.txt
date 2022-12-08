@@ -16,7 +16,6 @@ google-cloud-storage==2.1.0
 
 # processing
 celery==5.2.7
-redis==4.3.5
 
 # other
 Pillow==9.3.0
