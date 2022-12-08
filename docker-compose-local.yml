@@ -23,14 +23,12 @@ services:
       - .env
     depends_on:
       - flask_app
-      - redis_worker
+      - broker
   
-  redis_worker:
-    image: redis:7
-    ports:
-    - 6379:6379
+  broker:
+    image: rabbitmq:3.11.4
     environment:
-    - REDIS_PASSWORD=redisworker101
+    - RABBITMQ_DEFAULT_USER=dallas
 
   image_prediction:
     image: dallas18/image-prediction-ai:latest
