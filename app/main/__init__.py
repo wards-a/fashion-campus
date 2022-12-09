@@ -25,7 +25,11 @@ def create_app():
     app.config['RESTX_MASK_SWAGGER'] = False
     app.config['RESTX_MASK_HEADER'] = False
     ### cors config ###
-    cors.init_app(app)
+    cors.init_app(
+        app,
+        origins=[os.environ.get('FRONTEND_URL')],
+        methods=['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS']
+    )
     ### celery config ###
     app.config.update(CELERY_CONFIG={
         'broker_url': os.environ.get('CELERY_BROKER_URL'),
