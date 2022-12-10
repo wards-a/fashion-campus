@@ -5,6 +5,7 @@ from flask_restx import abort
 from app.main import db
 from app.main.model.category import Category
 from app.main.service.auth_service import get_user_by_id
+from app.main.utils.celery_tasks import deleted_to_es
 
 def get_all_category(headers):
     current_user = _get_user_identity(headers)
@@ -81,6 +82,7 @@ def mark_as_deleted(category_id):
         db.session.rollback()
         abort(404, "Category not available")
 
+    deleted_to_es.apply_async(kwargs={"data": {"key": "category_id", "value": category_id}, "field": "category_deleted"})
     return {"message": "Category deleted"}, 200
 
 def _get_user_identity(headers):
