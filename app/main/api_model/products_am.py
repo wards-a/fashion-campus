@@ -11,7 +11,7 @@ class ProductImage(fields.Raw):
 
     def format(self, value):
         if value:
-            return url_for("api.image", image_name_extension=value[0].image)
+            return url_for("api.image", image_name_extension=value[0])
         else:
             return url_for("api.image", image_name_extension="default.jpg")
 

@@ -10,6 +10,7 @@ from celery import Celery
 
 from app.main.utils.error_handler import register_error_handler
 
+
 db = SQLAlchemy()
 migrate = Migrate()
 bcrypt = Bcrypt()

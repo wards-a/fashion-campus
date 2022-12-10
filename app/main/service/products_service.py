@@ -8,6 +8,7 @@ from app.main.model.product_image import ProductImage
 from app.main.model.category import Category
 from app.main.service.auth_service import get_user_by_id
 from app.main.service.cart_service import delete_cart_by_product
+from app.main.dependencies.elasticsearch_manage import ES
 from app.main.utils.image_helper import (
     generate_filename, 
     b64str_to_byte,
@@ -15,13 +16,22 @@ from app.main.utils.image_helper import (
     resize_image,
     secure_name
 )
-from app.main.utils.celery_tasks import upload_to_gcs, remove_from_gcs
+from app.main.utils.celery_tasks import (
+    upload_to_gcs,
+    remove_from_gcs,
+    insert_to_es,
+    update_to_es,
+    deleted_to_es
+)
+
 
 ########### GET PRODUCT LIST ###########
 def get_product_list(data, headers):
+    es = ES()
     current_user = _get_user_identity(headers)
     if current_user and current_user.type.value == "seller":
-        products_list = db.session.execute(db.select(Product)).scalars().all()
+        resp = es.get_all_data(index="products")
+        products_list = [e['_source'] for e in resp]
         response_body = {"data": products_list, "total_rows": len(products_list)}
     else:
         response_body = _product_list(data)
@@ -30,49 +40,70 @@ def get_product_list(data, headers):
 
 def _product_list(data):
     # order / sort by price
-    sort_price = None
+    es = ES()
+    query = {"bool": {}, }
+    must = list()
+    filter = list()
+
+    sort = None
     if 'sort_by' in data:
         if data['sort_by'] == "Price a_z":
-            sort_price = db.asc(Product.price)
+            sort = [{"price": "asc"}]
         elif data['sort_by'] == "Price z_a":
-            sort_price = db.desc(Product.price)
+            sort = [{"price": "desc"}]
 
-    filters = tuple()
     # only available product and category
-    filters += (db.and_(Product.deleted=="0", Category.deleted=="0"), )
+    must.append({"term": {"category_deleted": "false"}})
+    must.append({"term": {"deleted": "false"}})
     # filter by category
     if 'category' in data:
-        category = data['category'].split(',')
-        filters += (Product.category_id.in_(category), )
+        categories = data['category'].split(',')
+        filter.append({
+            "terms": {
+                "category_id": categories
+            }
+        })
     # filter by price (lower, higher)
     if 'price' in data:
         start, end = data['price'].split(',')
-        filters += (Product.price.between(start, end), )
+        must.append({
+            "range": {
+                "price": {
+                    "gte": start,
+                    "lte": end
+                }
+            }
+        })
     # filter by conditon new/used
     if 'condition' in data:
         condition = data['condition'].split(',')
-        filters += (Product.condition.in_(condition), )
+        filter.append({
+            "terms": {
+                "condition": condition
+            }
+        })
     # filter by similar names
     if 'product_name' in data and data['product_name']:
-        filters += (Product.name.ilike('%'+data['product_name']+'%'), )
+        must.append({"wildcard": {"name": f"*{data['product_name']}*"}})
     # query; get product list
     try:
-        result = db.paginate(
-            db.select(Product)
-                .join(Category)
-                .filter(*filters)
-                .order_by(sort_price),
-            page=int(data['page']),
-            per_page=int(data['page_size'])
-        )
-        response_body = {"data": result.items, "total_rows": result.total}
-        if not result.items:
+        result_data = list()
+        query['bool']['must'] = must
+        query['bool']['filter'] = filter
+        from_ = (int(data['page'])-1)*int(data['page_size'])
+        size = int(data['page_size'])
+        es.get_pagination_data(index="products", query=query, from_=from_, size=size, sort=sort)
+        total_rows = es.resp['hits']['total']['value']
+        
+        for hit in es.resp['hits']['hits']:
+            result_data.append(hit["_source"])
+        
+        response_body = {"data": result_data, "total_rows": total_rows}
+        if total_rows <= 0:
             response_body.update({'success': True, 'message': 'No items available'})
             return response_body, 404
     except ValueError as e:
         return {"message": "Page and page size must be numeric"}, 400
-    except db.exc.DataError as e:
-        return {"message": "Something went wrong", "error": str(e.orig)}, 500
     
     return response_body
 
@@ -94,15 +125,18 @@ def get_product_detail(product_id):
 ########### Admin Page ###########
 ########### Save new product ###########
 def save_new_product(data):
+    _data_to_es = dict()
     result_data = _validation(data)
     try:
         ### store new product ###
         new_product = Product(**result_data)
         db.session.add(new_product)
         db.session.flush()
+        _data_to_es.update({"product": new_product})
         ### upload image ###
         if 'images' in data:
             images_name = _upload_images(data)
+            _data_to_es.update({"images": images_name})
             ### store filename to db ###
             images_obj = list()
             for name in images_name:
@@ -120,20 +154,33 @@ def save_new_product(data):
         return {"message": "Product could not be added"}, 500
     
     db.session.commit()
+
+    category = db.session.execute(db.select(Category).where(Category.id==new_product.category_id)).scalar()
+    _data_to_es.update({"category": category})
+    insert_to_es.apply_async(kwargs=_data_to_es, countdown=3)
     return {"message": "Product added"}, 201
 
 def save_product_changes(data):
+    _data_to_es = dict()
     result_data = _validation(data)
-    
     try:
         db.session.execute(
             db.update(Product)
             .where(Product.id == data['product_id'])
             .values(**result_data)
         )
+
+        _data_to_es.update({"product": result_data})
+        _data_to_es['product']['id'] = data['product_id']
+        deleted = db.session.execute(db.select(Product.deleted).where(Product.id==data['product_id'])).scalar()
+        _data_to_es['product']['deleted'] = deleted.value
+
         if 'images' in data:
             keep_images = [e.split('/')[-1] for e in data['images'] if 'data' not in e]
             new_images = [e for e in data['images'] if 'data' in e]
+
+            if keep_images:
+                _data_to_es.update({"images": keep_images})
 
             deleted_rows = db.session.execute(
                 db.delete(ProductImage)
@@ -153,6 +200,7 @@ def save_product_changes(data):
                         "last_image": keep_images[-1]
                     })
                 images_name = _upload_images(data)
+                _data_to_es['images'] += new_images
                 images_obj = list()
                 for name in images_name:
                     images_obj.append(
@@ -169,6 +217,10 @@ def save_product_changes(data):
         return {"message": "Product could not be updated"}, 500
     
     db.session.commit()
+
+    category = db.session.execute(db.select(Category).where(Category.id==result_data['category_id'])).scalar()
+    _data_to_es.update({"category": category})
+    update_to_es.apply_async(kwargs=_data_to_es, countdown=3)
 
     return {"message": "Product updated"}, 200
 
@@ -188,6 +240,7 @@ def mark_as_deleted(product_id):
     
     delete_cart_by_product(product.id)
 
+    deleted_to_es.apply_async(kwargs={"data": {"key": "id", "value": product_id}, "field": "deleted"})
     return {"message": "Product deleted"}, 200
 
 ########### search by image and return category of image ###########
