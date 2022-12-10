@@ -16,6 +16,7 @@ google-cloud-storage==2.1.0
 
 # processing
 celery==5.2.7
+elasticsearch==8.5.3
 
 # other
 Pillow==9.3.0
