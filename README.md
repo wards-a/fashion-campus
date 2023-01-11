@@ -35,7 +35,7 @@ Please ensure that the tools listed below are installed.
 Run the following command in your terminal.
 
 ```
-git clone https://gitlab.com/andrifanky/fashion-campus.git
+https://github.com/wards-a/fashion-campus.git
 ```
 
 ## Change environment
