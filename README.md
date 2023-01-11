@@ -1,6 +1,6 @@
 # Fashion Campus
 
-Backend repository for Final Project Startup Campus
+Backend repository for Final Project Startup Campus MSIB Batch 3
 
 ## Built With
 
